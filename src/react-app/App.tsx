@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RENAMED, recipes } from "../shared/recipes";
-import { Console } from "./components/Console";
+import { Debris, Kaiju } from "./components/Kaiju";
 import { RecipeCard } from "./components/RecipeCard";
 import { PrintSheet, RecipeDetail } from "./components/RecipeDetail";
 import { SecretModal } from "./components/SecretModal";
@@ -137,14 +137,16 @@ export default function App() {
 
 	const openRecipe = recipes.find((r) => r.id === openId);
 	const topName = recipes.find((r) => r.id === topId)?.name;
-	const ticker = [
-		"NO OVEN REQUIRED",
-		topName ? `HI-SCORE: ${topName.toUpperCase()}` : "HI-SCORE: ??? (GO VOTE)",
-		"INSERT DATES TO CONTINUE",
-		`${recipes.length} CARTRIDGES LOADED`,
-		"ROLL RESPONSIBLY",
-		"PRINTER FRIENDLY",
-	];
+	const ticker = turbo
+		? ["⚠ KAIJU ATTACK ⚠", "EVACUATE THE SNACK BAR", "RESISTANCE IS FRUITLESS", "ENERGY LEVELS: CRITICAL", "DATES: DESTROYED", "HIT RESET TO CALM IT DOWN"]
+		: [
+				"NO OVEN REQUIRED",
+				topName ? `HI-SCORE: ${topName.toUpperCase()}` : "HI-SCORE: ??? (GO VOTE)",
+				"INSERT DATES TO CONTINUE",
+				`${recipes.length} CARTRIDGES LOADED`,
+				"ROLL RESPONSIBLY",
+				"PRINTER FRIENDLY",
+			];
 
 	return (
 		<div className={`app${turbo ? " turbo" : ""}${openRecipe ? " has-open" : ""}`}>
@@ -169,16 +171,13 @@ export default function App() {
 						</button>
 					</div>
 				</div>
-				<Console
-					featured={recipes.find((r) => r.id === topId) ?? recipes[0]}
-					onA={random}
-					onB={toRecipes}
-					onMenu={() => {
-						setSound(!sound);
-						setSoundState(!sound);
-					}}
+				<Kaiju
 					sound={sound}
-					track={turbo ? "TURBO MIX" : "CHILL MIX"}
+					turbo={turbo}
+					onToggle={(on) => {
+						setSound(on);
+						setSoundState(on);
+					}}
 				/>
 			</header>
 
@@ -261,6 +260,22 @@ export default function App() {
 					. Psst: ↑ ↑ ↓ ↓ ← → ← → B A
 				</p>
 			</footer>
+
+			{turbo && (
+				<>
+					<Debris />
+					<button
+						type="button"
+						className="reset-lofi"
+						onClick={() => {
+							setTurbo(false);
+							blip("close");
+						}}
+					>
+						↺ RESET TO LO-FI
+					</button>
+				</>
+			)}
 
 			{secretOpen && <SecretModal progress={konamiPos} onClose={() => setSecretOpen(false)} />}
 

@@ -23,8 +23,11 @@ votes carry over. The Worker uses the same file to validate recipe ids.
 
 ## Sound
 
-Hit **SND** on the handheld for blips plus background music: a mellow lo-fi "Chill Mix", switching
-to a 168 BPM "Turbo Mix" in Konami mode. Both are original loops synthesized live with WebAudio in
+Sound is **on by default**. Browsers block audio until the first click, so until then the pixel
+kaiju bunny screams at visitors to hit its button and crank the volume. After that it's a cute,
+swaying lo-fi bunny ("Chill Mix"). Konami mode turns it into a rampaging kaiju: the 168 BPM
+"Turbo Mix", a city on fire, and the whole site shaking, cracking and raining debris, until someone
+hits **↺ RESET TO LO-FI**. Tap the bunny to mute (it falls asleep) or unmute. Both are original loops synthesized live with WebAudio in
 [`src/react-app/music.ts`](src/react-app/music.ts), with no audio files.
 
 ## How votes work
@@ -59,4 +62,4 @@ Several recipes are adapted from [Well Plated by Erin Clarke](https://www.wellpl
 [Yummy Toddler Food](https://www.yummytoddlerfood.com/no-bake-energy-balls-with-fruit/); each card credits and links its source.
 Recipes with a `promo` show a "Bonus Pack" plug, and ones that need a food processor show a gear plug
 (`FOOD_PROCESSOR` in `recipes.ts`).
-Look & feel: a love letter to Panic's Playdate. Hidden turbo mode: ↑ ↑ ↓ ↓ ← → ← → B A.
+Look & feel: a love letter to Panic's Playdate, plus one kaiju bunny. Hidden turbo mode: ↑ ↑ ↓ ↓ ← → ← → B A.

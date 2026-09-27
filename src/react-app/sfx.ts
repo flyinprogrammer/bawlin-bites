@@ -1,9 +1,9 @@
-// Tiny square-wave blips via WebAudio. Off until the player turns sound on.
+// Tiny square-wave blips via WebAudio. On by default; the kaiju bunny toggles it.
 let ctx: AudioContext | undefined;
-let enabled = false;
+let enabled = true;
 
 try {
-	enabled = localStorage.getItem("bb:sound") === "on";
+	enabled = localStorage.getItem("bb:sound") !== "off";
 } catch {
 	/* storage unavailable */
 }
@@ -12,6 +12,17 @@ try {
 export function audioCtx() {
 	ctx ??= new AudioContext();
 	return ctx;
+}
+
+/** Browsers keep audio suspended until the first click/keypress. */
+export function audioRunning() {
+	return ctx?.state === "running";
+}
+
+export function onAudioStateChange(cb: () => void) {
+	const c = audioCtx();
+	c.addEventListener("statechange", cb);
+	return () => c.removeEventListener("statechange", cb);
 }
 
 export function soundOn() {

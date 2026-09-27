@@ -1,5 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FOOD_PROCESSOR, needsFoodProcessor, type Recipe } from "../../shared/recipes";
+import { BATCHES, scaledIngredient, scaledMakes } from "../scaled";
+import type { Approval } from "../useApprovals";
 import type { Tally, Vote } from "../useVotes";
 import { blip } from "../sfx";
 import { BallArt } from "./BallArt";
@@ -14,6 +16,13 @@ export function RecipeDetail({
 	onClose,
 	checked,
 	onCheck,
+	batch,
+	onBatch,
+	grams,
+	onGrams,
+	approval,
+	isAdmin,
+	onSetApproval,
 }: {
 	recipe: Recipe;
 	tally?: Tally;
@@ -23,6 +32,15 @@ export function RecipeDetail({
 	/** Indexes of ingredients ticked off (shared with the print sheet). */
 	checked: ReadonlySet<number>;
 	onCheck: (index: number) => void;
+	/** 1, 2 or 3 batches (shared with the print sheet). */
+	batch: number;
+	onBatch: (times: number) => void;
+	/** Show verified gram weights next to the cups/spoons. */
+	grams: boolean;
+	onGrams: (on: boolean) => void;
+	approval?: Approval;
+	isAdmin: boolean;
+	onSetApproval: (approved: boolean, note: string) => Promise<boolean>;
 }) {
 	const ref = useRef<HTMLDialogElement>(null);
 
@@ -59,6 +77,7 @@ export function RecipeDetail({
 					</div>
 					<div className="detail-title">
 						<span className="detail-kicker">NOW PLAYING</span>
+						{approval && <ApprovalSeal approval={approval} />}
 						<h2 id="detail-title">{recipe.name}</h2>
 						<p>{recipe.tagline}</p>
 						<div className="detail-meta">
@@ -69,7 +88,7 @@ export function RecipeDetail({
 								<b>TOTAL</b> {recipe.totalMins} min
 							</span>
 							<span>
-								<b>MAKES</b> {recipe.makes}
+								<b>MAKES</b> {scaledMakes(recipe, batch)}
 							</span>
 						</div>
 						<div className="cart-stats">
@@ -97,22 +116,63 @@ export function RecipeDetail({
 					</button>
 				</div>
 
+				{isAdmin && <AdminApproval key={recipe.id} approval={approval} onSave={onSetApproval} />}
+
 				<div className="detail-body">
 					<section>
 						<h3>
 							INVENTORY <small>{allDone ? "ALL ITEMS COLLECTED!" : `${checked.size}/${recipe.ingredients.length}`}</small>
 						</h3>
-						<ul className="ingredients">
-							{recipe.ingredients.map((ing, i) => (
-								<li key={i}>
-									<label className={checked.has(i) ? "got" : ""}>
-										<input type="checkbox" checked={checked.has(i)} onChange={() => toggle(i)} />
-										<span className="qty">{ing.qty}</span> <span>{ing.item}</span>
-										{ing.note && <em> ({ing.note})</em>}
-									</label>
-								</li>
-							))}
+						<div className="batch-bar">
+							<div className="batch" role="radiogroup" aria-label="Batch size">
+								{BATCHES.map((b) => (
+									<button
+										key={b.times}
+										type="button"
+										role="radio"
+										aria-checked={batch === b.times}
+										aria-label={b.name}
+										className={batch === b.times ? "on" : ""}
+										onClick={() => {
+											blip("select");
+											onBatch(b.times);
+										}}
+									>
+										{b.label}
+									</button>
+								))}
+							</div>
+							<label className="grams-toggle">
+								<input type="checkbox" checked={grams} onChange={(e) => onGrams(e.target.checked)} />
+								⚖ GRAMS
+							</label>
+						</div>
+						<ul className={`ingredients${grams ? " with-grams" : ""}`}>
+							{recipe.ingredients.map((ing, i) => {
+								const line = scaledIngredient(ing, batch);
+								return (
+									<li key={i}>
+										<label className={checked.has(i) ? "got" : ""}>
+											<input type="checkbox" checked={checked.has(i)} onChange={() => toggle(i)} />
+											<span className="qty">{line.qty}</span> <span>{line.item}</span>
+											{ing.note && <em> ({ing.note})</em>}
+											{grams && (
+												<span className={`grams${line.grams === null ? " none" : ""}`}>
+													{line.grams === null ? line.noWeight : `≈${line.grams} g`}
+												</span>
+											)}
+										</label>
+									</li>
+								);
+							})}
 						</ul>
+						{grams && (
+							<p className="grams-note">
+								Grams only appear where King Arthur Baking and USDA data agree within 5% for that exact ingredient, and
+								for amounts of 1 tbsp or more. Everything else (oats, dates, whole nuts, dried fruit…) packs too
+								differently to weigh reliably, so measure it with cups.
+							</p>
+						)}
 					</section>
 					<section>
 						<h3>LEVELS</h3>
@@ -167,7 +227,20 @@ export function RecipeDetail({
 }
 
 /** Plain black-and-white version that only shows up on paper. Ticked ingredients print ticked. */
-export function PrintSheet({ recipe, checked }: { recipe: Recipe; checked: ReadonlySet<number> }) {
+export function PrintSheet({
+	recipe,
+	checked,
+	batch,
+	grams,
+	approval,
+}: {
+	recipe: Recipe;
+	checked: ReadonlySet<number>;
+	batch: number;
+	grams: boolean;
+	approval?: Approval;
+}) {
+	const batchName = BATCHES.find((b) => b.times === batch)?.name;
 	return (
 		<article className="print-sheet" aria-hidden="true">
 			<header>
@@ -176,20 +249,26 @@ export function PrintSheet({ recipe, checked }: { recipe: Recipe; checked: Reado
 					<h1>{recipe.name}</h1>
 					<p>{recipe.tagline}</p>
 					<p className="print-meta">
-						Prep {recipe.prepMins} min · Total {recipe.totalMins} min · Makes {recipe.makes}
+						{batch > 1 && <>{batchName} ({batch}×) · </>}Prep {recipe.prepMins} min · Total {recipe.totalMins} min · Makes{" "}
+						{scaledMakes(recipe, batch)}
 					</p>
+					{approval && <p className="print-meta">✓ Scherger tested &amp; approved{approval.note ? `: “${approval.note}”` : ""}</p>}
 				</div>
 			</header>
 			<div className="print-cols">
 				<section>
 					<h2>Ingredients</h2>
 					<ul>
-						{recipe.ingredients.map((ing, i) => (
-							<li key={i} className={checked.has(i) ? "got" : ""}>
-								<span className="box">{checked.has(i) ? "✓" : ""}</span> <b>{ing.qty}</b> {ing.item}
-								{ing.note && <em> ({ing.note})</em>}
-							</li>
-						))}
+						{recipe.ingredients.map((ing, i) => {
+							const line = scaledIngredient(ing, batch);
+							return (
+								<li key={i} className={checked.has(i) ? "got" : ""}>
+									<span className="box">{checked.has(i) ? "✓" : ""}</span> <b>{line.qty}</b> {line.item}
+									{ing.note && <em> ({ing.note})</em>}
+									{grams && line.grams !== null && <span className="print-grams"> ≈{line.grams} g</span>}
+								</li>
+							);
+						})}
 					</ul>
 				</section>
 				<section>
@@ -212,5 +291,55 @@ export function PrintSheet({ recipe, checked }: { recipe: Recipe; checked: Reado
 				{recipe.promo && <> · More recipes: {recipe.promo.url}</>}
 			</footer>
 		</article>
+	);
+}
+
+function ApprovalSeal({ approval }: { approval: Approval }) {
+	const date = new Date(approval.at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+	return (
+		<div className="approval-seal">
+			<span className="seal-stamp" aria-hidden="true">
+				✓
+			</span>
+			<div>
+				<b>SCHERGER TESTED &amp; APPROVED</b>
+				<span>
+					{date}
+					{approval.note && <> · “{approval.note}”</>}
+				</span>
+			</div>
+		</div>
+	);
+}
+
+/** Only rendered for someone logged in with the admin token. */
+function AdminApproval({ approval, onSave }: { approval?: Approval; onSave: (approved: boolean, note: string) => Promise<boolean> }) {
+	const [note, setNote] = useState(approval?.note ?? "");
+	const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
+	const save = async (approved: boolean) => {
+		setStatus("saving");
+		setStatus((await onSave(approved, note)) ? "idle" : "error");
+	};
+	return (
+		<div className="admin-approval">
+			<span className="admin-tag">🔑 SCHERGER HQ</span>
+			<input
+				type="text"
+				maxLength={200}
+				placeholder="Optional note, e.g. “made a double batch, perfect”"
+				value={note}
+				onChange={(e) => setNote(e.target.value)}
+				aria-label="Approval note"
+			/>
+			<button type="button" className="approve-btn" disabled={status === "saving"} onClick={() => save(true)}>
+				{approval ? "✓ UPDATE NOTE" : "✓ MARK TESTED & APPROVED"}
+			</button>
+			{approval && (
+				<button type="button" className="unapprove-btn" disabled={status === "saving"} onClick={() => save(false)}>
+					REMOVE APPROVAL
+				</button>
+			)}
+			{status === "error" && <span className="admin-error">Couldn't save. Is your token still valid?</span>}
+		</div>
 	);
 }

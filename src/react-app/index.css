@@ -1788,3 +1788,236 @@ body.quake .recipes {
 .turbo .cart.crowned::after {
 	display: none; /* no turbo cracks on the favorite */
 }
+
+/* ─── batch size + grams ───────────────────────────── */
+
+.batch-bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	margin-bottom: 12px;
+}
+.batch {
+	display: inline-flex;
+	border: 3px solid var(--ink);
+	border-radius: 10px;
+	overflow: hidden;
+}
+.batch button {
+	font-family: var(--sans);
+	font-weight: 800;
+	font-size: 16px;
+	padding: 6px 14px;
+	background: var(--cream);
+	color: var(--ink);
+	border: none;
+	cursor: pointer;
+	touch-action: manipulation;
+}
+.batch button + button {
+	border-left: 3px solid var(--ink);
+}
+.batch button.on {
+	background: var(--ink);
+	color: var(--on-ink);
+}
+.grams-toggle {
+	font-family: var(--pixel);
+	font-size: 10px;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+}
+.grams-toggle input {
+	width: 18px;
+	height: 18px;
+	accent-color: var(--accent);
+}
+.grams {
+	float: right;
+	margin-left: 10px;
+	font-family: var(--sans);
+	font-weight: 700;
+	font-size: 13px;
+	line-height: 1;
+	padding: 5px 7px;
+	border-radius: 6px;
+	background: var(--ink);
+	color: var(--on-ink);
+	text-decoration: none;
+	white-space: nowrap;
+}
+.grams.none {
+	background: transparent;
+	color: #7a7465;
+	border: 1px dashed #b5ad9c;
+}
+.ingredients label.got .grams {
+	opacity: 0.6;
+}
+.grams-note {
+	font-size: 13px;
+	color: #6b675c;
+	margin: 12px 0 0;
+}
+
+/* ─── Scherger tested & approved ───────────────────── */
+
+.tested-seal {
+	position: absolute;
+	bottom: 8px;
+	right: 10px;
+	width: 58px;
+	height: 58px;
+	display: grid;
+	place-items: center;
+	text-align: center;
+	font-family: var(--pixel);
+	font-size: 6px;
+	line-height: 1.5;
+	color: #fff;
+	background: #2fa36b;
+	border: 3px double #fff;
+	border-radius: 50%;
+	box-shadow: 0 0 0 3px #1c6e46, 3px 3px 0 3px rgb(0 0 0 / 0.35);
+	transform: rotate(-12deg);
+}
+.approval-seal {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 8px 0 10px;
+	padding: 8px 10px;
+	background: #e3f5ea;
+	border: 2px solid #2fa36b;
+	border-radius: 10px;
+	color: #154d31;
+}
+.approval-seal b {
+	display: block;
+	font-family: var(--pixel);
+	font-size: 9px;
+	line-height: 1.6;
+}
+.approval-seal span {
+	font-size: 14px;
+}
+.seal-stamp {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	background: #2fa36b;
+	color: #fff;
+	font-weight: 800;
+	border: 3px double #fff;
+	box-shadow: 0 0 0 2px #1c6e46;
+}
+.admin-approval {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 24px;
+	background: #fff4d6;
+	border-bottom: 3px dashed rgb(34 30 46 / 0.25);
+	color: #221e2e;
+}
+.admin-tag {
+	font-family: var(--pixel);
+	font-size: 9px;
+}
+.admin-approval input {
+	flex: 1 1 220px;
+	font: inherit;
+	font-size: 15px;
+	padding: 8px 10px;
+	border: 2px solid #221e2e;
+	border-radius: 8px;
+	background: #fff;
+	color: #221e2e;
+}
+.approve-btn,
+.unapprove-btn,
+.admin-login-actions button {
+	font-family: var(--pixel);
+	font-size: 10px;
+	padding: 10px 12px;
+	border: 2px solid #221e2e;
+	border-radius: 8px;
+	background: #fff;
+	color: #221e2e;
+	cursor: pointer;
+}
+.approve-btn {
+	background: #2fa36b;
+	color: #fff;
+	text-shadow: 1px 1px 0 #1c6e46;
+}
+.approve-btn:disabled {
+	opacity: 0.6;
+	cursor: wait;
+}
+.admin-error {
+	flex-basis: 100%;
+	color: #b3261e;
+	font-weight: 700;
+	margin: 0;
+}
+.foot-staff {
+	margin-top: 22px;
+	font-family: var(--sans);
+	font-size: 13px;
+}
+.foot-staff button {
+	font: inherit;
+	background: none;
+	border: none;
+	color: inherit;
+	text-decoration: underline;
+	cursor: pointer;
+	opacity: 0.7;
+}
+.admin-login {
+	width: min(420px, calc(100vw - 32px));
+	padding: 22px;
+	border: 3px solid #221e2e;
+	border-radius: 16px;
+	background: #fffaf2;
+	color: #221e2e;
+	box-shadow: 8px 8px 0 var(--accent);
+}
+.admin-login::backdrop {
+	background: rgb(34 30 46 / 0.7);
+}
+.admin-login h2 {
+	font-family: var(--pixel);
+	font-size: 16px;
+	margin: 0 0 10px;
+}
+.admin-login input {
+	width: 100%;
+	font: inherit;
+	font-size: 16px;
+	padding: 10px;
+	border: 2px solid #221e2e;
+	border-radius: 8px;
+	margin: 6px 0 10px;
+}
+.admin-login-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+}
+
+@media print {
+	.print-sheet .print-grams {
+		font-size: 10pt;
+		color: #333 !important;
+	}
+}

@@ -10,22 +10,33 @@ const app = new Hono<{ Bindings: Env }>();
 let schemaReady: Promise<unknown> | undefined;
 function ensureSchema(db: D1Database) {
 	schemaReady ??= db
-		.prepare(
-			`CREATE TABLE IF NOT EXISTS votes (
-				recipe_id TEXT NOT NULL,
-				voter_id TEXT NOT NULL,
-				vote INTEGER NOT NULL CHECK (vote IN (-1, 1)),
-				updated_at INTEGER NOT NULL,
-				PRIMARY KEY (recipe_id, voter_id)
-			)`,
-		)
-		.run()
+		.batch([
+			db.prepare(
+				`CREATE TABLE IF NOT EXISTS votes (
+					recipe_id TEXT NOT NULL,
+					voter_id TEXT NOT NULL,
+					vote INTEGER NOT NULL CHECK (vote IN (-1, 1)),
+					updated_at INTEGER NOT NULL,
+					PRIMARY KEY (recipe_id, voter_id)
+				)`,
+			),
+			// "Scherger tested & approved": one row per recipe the family has actually made.
+			db.prepare(
+				`CREATE TABLE IF NOT EXISTS approvals (
+					recipe_id TEXT PRIMARY KEY,
+					approved_at INTEGER NOT NULL,
+					note TEXT
+				)`,
+			),
+		])
 		.then(() =>
 			// Carry votes over from renamed recipes. Idempotent: once moved, nothing matches.
 			db.batch(
 				Object.entries(RENAMED).flatMap(([from, to]) => [
 					db.prepare("UPDATE OR IGNORE votes SET recipe_id = ? WHERE recipe_id = ?").bind(to, from),
 					db.prepare("DELETE FROM votes WHERE recipe_id = ?").bind(from),
+					db.prepare("UPDATE OR IGNORE approvals SET recipe_id = ? WHERE recipe_id = ?").bind(to, from),
+					db.prepare("DELETE FROM approvals WHERE recipe_id = ?").bind(from),
 				]),
 			),
 		)
@@ -88,6 +99,69 @@ app.put("/api/votes/:recipeId", async (c) => {
 	}
 	const tally = (await tallies(c.env.DB, recipeId))[recipeId] ?? { up: 0, down: 0 };
 	return c.json({ tally, mine: vote === 0 ? null : vote });
+});
+
+// ─── Scherger tested & approved ────────────────────────────────────────────
+// Anyone can read approvals; changing them needs the ADMIN_TOKEN secret as a
+// bearer token (set in GitHub → Environments → production, synced on deploy).
+
+const NOTE_MAX = 200;
+
+async function isAdmin(c: { env: Env; req: { header: (name: string) => string | undefined } }) {
+	const expected = c.env.ADMIN_TOKEN;
+	const given = c.req.header("authorization")?.replace(/^Bearer\s+/i, "");
+	if (!expected || !given) return false;
+	// Compare fixed-length digests in constant time so the token can't be guessed byte by byte.
+	const [a, b] = await Promise.all(
+		[expected, given].map((v) => crypto.subtle.digest("SHA-256", new TextEncoder().encode(v))),
+	);
+	return crypto.subtle.timingSafeEqual(a, b);
+}
+
+app.get("/api/approvals", async (c) => {
+	await ensureSchema(c.env.DB);
+	const { results } = await c.env.DB.prepare("SELECT recipe_id, approved_at, note FROM approvals").all<{
+		recipe_id: string;
+		approved_at: number;
+		note: string | null;
+	}>();
+	const approvals: Record<string, { at: number; note: string | null }> = {};
+	for (const row of results) if (recipeIds.has(row.recipe_id)) approvals[row.recipe_id] = { at: row.approved_at, note: row.note };
+	return c.json({ approvals });
+});
+
+app.get("/api/admin", async (c) => {
+	if (!c.env.ADMIN_TOKEN) return c.json({ error: "admin not configured" }, 503);
+	return (await isAdmin(c)) ? c.body(null, 204) : c.json({ error: "bad token" }, 401);
+});
+
+app.put("/api/approvals/:recipeId", async (c) => {
+	if (!c.env.ADMIN_TOKEN) return c.json({ error: "admin not configured" }, 503);
+	if (!(await isAdmin(c))) return c.json({ error: "bad token" }, 401);
+	const recipeId = c.req.param("recipeId");
+	if (!recipeIds.has(recipeId)) return c.json({ error: "unknown recipe" }, 404);
+
+	const body = await c.req.json<{ approved?: unknown; note?: unknown }>().catch(() => ({}) as Record<string, unknown>);
+	if (typeof body.approved !== "boolean") return c.json({ error: "approved must be true or false" }, 400);
+	if (body.note !== undefined && body.note !== null && typeof body.note !== "string") return c.json({ error: "bad note" }, 400);
+	const note = typeof body.note === "string" && body.note.trim() ? body.note.trim().slice(0, NOTE_MAX) : null;
+
+	await ensureSchema(c.env.DB);
+	if (!body.approved) {
+		await c.env.DB.prepare("DELETE FROM approvals WHERE recipe_id = ?").bind(recipeId).run();
+		return c.json({ approval: null });
+	}
+	const at = Date.now();
+	await c.env.DB.prepare(
+		`INSERT INTO approvals (recipe_id, approved_at, note) VALUES (?, ?, ?)
+		 ON CONFLICT (recipe_id) DO UPDATE SET note = excluded.note`,
+	)
+		.bind(recipeId, at, note)
+		.run();
+	const row = await c.env.DB.prepare("SELECT approved_at, note FROM approvals WHERE recipe_id = ?")
+		.bind(recipeId)
+		.first<{ approved_at: number; note: string | null }>();
+	return c.json({ approval: row ? { at: row.approved_at, note: row.note } : null });
 });
 
 app.all("/api/*", (c) => c.json({ error: "not found" }, 404));

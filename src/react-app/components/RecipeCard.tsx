@@ -14,6 +14,7 @@ export function RecipeCard({
 	isTop,
 	smashed = false,
 	crowned = false,
+	approved = false,
 }: {
 	recipe: Recipe;
 	index: number;
@@ -26,6 +27,8 @@ export function RecipeCard({
 	smashed?: boolean;
 	/** Spared and crowned by the kaiju: glows gold and sits at #1. */
 	crowned?: boolean;
+	/** Scherger tested & approved (from D1). */
+	approved?: boolean;
 }) {
 	// Deterministic "how badly it got hit" per card.
 	const tilt = ((index * 37) % 24) - 12;
@@ -52,6 +55,13 @@ export function RecipeCard({
 				<div className="cart-label">
 					<span className="cart-no">{crowned ? "#1" : `No.${String(index + 1).padStart(2, "0")}`}</span>
 					{isTop && <span className="cart-badge">HI-SCORE</span>}
+					{approved && (
+						<span className="tested-seal" title="Scherger tested & approved">
+							✓ SCHERGER
+							<br />
+							TESTED
+						</span>
+					)}
 					<BallArt recipe={recipe} size={112} className="cart-ball" />
 				</div>
 				<div className="cart-body">

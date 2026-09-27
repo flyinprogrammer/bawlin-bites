@@ -11,11 +11,14 @@ import { KONAMI } from "./konami";
 import { setMusic } from "./music";
 import { audioCtx, blip, setSound, soundOn } from "./sfx";
 import { useAudioRunning } from "./useAudioRunning";
+import { AdminLogin } from "./components/AdminLogin";
+import { useApprovals } from "./useApprovals";
 import { useVotes } from "./useVotes";
 
 type Sort = "top" | "quick" | "az";
 
-const FILTERS = ["nut-free", "kid-made", "dates", "oats", "chocolate", "coconut", "cashew", "peanut", "almond", "fruit", "no oats"];
+const TESTED = "scherger tested";
+const FILTERS = [TESTED, "nut-free", "kid-made", "dates", "oats", "chocolate", "coconut", "cashew", "peanut", "almond", "fruit", "no oats"];
 const NONE: ReadonlySet<number> = new Set();
 const sources = [...new Map(recipes.filter((r) => r.source).map((r) => [r.source!.name, r.source!])).values()];
 
@@ -30,6 +33,11 @@ function idFromPath(path: string) {
 
 export default function App() {
 	const { tallies, mine, cast, online } = useVotes();
+	const { approvals, isAdmin, login, logout, setApproval } = useApprovals();
+	const [loginOpen, setLoginOpen] = useState(false);
+	// Batch size per recipe (1×/2×/3×) and the grams toggle, shared by the dialog and the printout.
+	const [batches, setBatches] = useState<Record<string, number>>({});
+	const [grams, setGrams] = useState(false);
 	const [openId, setOpenId] = useState<string | null>(() => idFromPath(location.pathname));
 	const [filter, setFilter] = useState<string | null>(null);
 	const [sort, setSort] = useState<Sort>("top");
@@ -140,14 +148,14 @@ export default function App() {
 	}, [score]);
 
 	const shown = useMemo(() => {
-		const list = recipes.map((r, i) => ({ r, i })).filter(({ r }) => !filter || r.tags.includes(filter));
+		const list = recipes.map((r, i) => ({ r, i })).filter(({ r }) => !filter || (filter === TESTED ? !!approvals[r.id] : r.tags.includes(filter)));
 		if (sort === "top") list.sort((a, b) => score(b.r.id) - score(a.r.id) || a.i - b.i);
 		if (sort === "quick") list.sort((a, b) => a.r.totalMins - b.r.totalMins || a.i - b.i);
 		if (sort === "az") list.sort((a, b) => a.r.name.localeCompare(b.r.name));
 		const fave = list.findIndex(({ r }) => r.id === crowned);
 		if (fave > 0) list.unshift(...list.splice(fave, 1)); // the kaiju's pick jumps to the front
 		return list;
-	}, [filter, sort, score, crowned]);
+	}, [filter, sort, score, crowned, approvals]);
 
 	const random = () => {
 		const pool = shown.length ? shown : recipes.map((r, i) => ({ r, i }));
@@ -254,7 +262,7 @@ export default function App() {
 									setFilter(filter === f ? null : f);
 								}}
 							>
-								{f.toUpperCase()}
+								{f === TESTED ? "✓ SCHERGER TESTED" : f.toUpperCase()}
 							</button>
 						))}
 					</div>
@@ -281,6 +289,7 @@ export default function App() {
 							isTop={r.id === topId}
 							smashed={smashed.has(r.id)}
 							crowned={r.id === crowned}
+							approved={!!approvals[r.id]}
 						/>
 					))}
 				</div>
@@ -308,7 +317,23 @@ export default function App() {
 					</h2>
 					<KonamiPad progress={konamiPos} />
 				</section>
+				<p className="foot-staff">
+					{isAdmin ? (
+						<>
+							🔑 Logged in as Scherger HQ ·{" "}
+							<button type="button" onClick={logout}>
+								log out
+							</button>
+						</>
+					) : (
+						<button type="button" onClick={() => setLoginOpen(true)}>
+							🔑 Scherger HQ
+						</button>
+					)}
+				</p>
 			</footer>
+
+			{loginOpen && <AdminLogin onLogin={login} onClose={() => setLoginOpen(false)} />}
 
 			{loose && <Rampage onSmash={smash} onCrown={setCrowned} />}
 
@@ -338,8 +363,21 @@ export default function App() {
 						onClose={close}
 						checked={checks[openRecipe.id] ?? NONE}
 						onCheck={(i) => toggleCheck(openRecipe.id, i)}
+						batch={batches[openRecipe.id] ?? 1}
+						onBatch={(times) => setBatches((b) => ({ ...b, [openRecipe.id]: times }))}
+						grams={grams}
+						onGrams={setGrams}
+						approval={approvals[openRecipe.id]}
+						isAdmin={isAdmin}
+						onSetApproval={(approved, note) => setApproval(openRecipe.id, approved, note)}
 					/>
-					<PrintSheet recipe={openRecipe} checked={checks[openRecipe.id] ?? NONE} />
+					<PrintSheet
+						recipe={openRecipe}
+						checked={checks[openRecipe.id] ?? NONE}
+						batch={batches[openRecipe.id] ?? 1}
+						grams={grams}
+						approval={approvals[openRecipe.id]}
+					/>
 				</>
 			)}
 		</div>

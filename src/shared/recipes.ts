@@ -1,11 +1,19 @@
 // The recipe "cartridges". Shared by the React app (rendering) and the Worker
 // (validating which recipe ids can be voted on).
 
+import type { WeightKey } from "./weights";
+
 export type Stat = 1 | 2 | 3 | 4 | 5;
 
 export interface Ingredient {
+	/** Parsed by src/shared/quantity.ts: "1¼ cups", "2 tbsp", "½ tsp", "1", "pinch", "optional". */
 	qty: string;
 	item: string;
+	/** Plural item name for counted ingredients ("lemons") when batch-scaled past 1. */
+	plural?: string;
+	/** Key into WEIGHTS (grams per cup); only set where the density is verified. */
+	weigh?: WeightKey;
+	/** Must never contain an amount: notes don't get batch-scaled. */
 	note?: string;
 }
 
@@ -50,12 +58,22 @@ const oatBaseSteps = [
 ];
 const oatBaseTip = "Nut allergy? Sunflower seed butter works in place of the peanut or almond butter.";
 
+// Verified weights for the base's swappable binders, by exact wording. "any nut butter" and
+// "honey or maple syrup" stay weightless on purpose: the options differ by more than 5%.
+const BINDER_WEIGHTS: Partial<Record<string, WeightKey>> = {
+	"peanut butter": "peanutButter",
+	"almond butter": "almondCashewButter",
+	"almond or cashew butter": "almondCashewButter",
+	honey: "honey",
+	"maple syrup": "mapleSyrup",
+};
+
 function oatBase(opts: { oats?: string; butter: string; sweetener: string; extras: Ingredient[] }): Ingredient[] {
 	return [
 		{ qty: opts.oats ?? "1¼ cups", item: "old-fashioned rolled oats", note: "quick oats work too" },
 		{ qty: "2 tbsp", item: "chia, flax, or hemp seeds", note: "or more oats" },
-		{ qty: "½ cup", item: opts.butter },
-		{ qty: "⅓ cup", item: opts.sweetener },
+		{ qty: "½ cup", item: opts.butter, weigh: BINDER_WEIGHTS[opts.butter] },
+		{ qty: "⅓ cup", item: opts.sweetener, weigh: BINDER_WEIGHTS[opts.sweetener] },
 		{ qty: "1 tsp", item: "vanilla extract" },
 		{ qty: "¼ tsp", item: "kosher salt" },
 		...opts.extras,
@@ -76,7 +94,7 @@ const defs: Omit<Recipe, "id">[] = [
 		ingredients: oatBase({
 			butter: "any nut butter",
 			sweetener: "honey",
-			extras: [{ qty: "½ cup", item: "chocolate chips" }],
+			extras: [{ qty: "½ cup", item: "chocolate chips", weigh: "chocolateChips" }],
 		}),
 		steps: oatBaseSteps,
 		tip: oatBaseTip,
@@ -96,7 +114,7 @@ const defs: Omit<Recipe, "id">[] = [
 			butter: "peanut butter",
 			sweetener: "honey",
 			extras: [
-				{ qty: "3 tbsp", item: "chocolate chips" },
+				{ qty: "3 tbsp", item: "chocolate chips", weigh: "chocolateChips" },
 				{ qty: "3 tbsp", item: "chopped peanuts" },
 				{ qty: "2 tbsp", item: "raisins" },
 			],
@@ -120,7 +138,7 @@ const defs: Omit<Recipe, "id">[] = [
 			sweetener: "honey",
 			extras: [
 				{ qty: "¼ cup", item: "dried cranberries" },
-				{ qty: "¼ cup", item: "white chocolate chips" },
+				{ qty: "¼ cup", item: "white chocolate chips", weigh: "whiteChocolateChips" },
 			],
 		}),
 		steps: oatBaseSteps,
@@ -142,8 +160,8 @@ const defs: Omit<Recipe, "id">[] = [
 			butter: "almond butter",
 			sweetener: "honey or maple syrup",
 			extras: [
-				{ qty: "½ cup", item: "unsweetened coconut flakes", note: "stands in for ½ cup of the oats" },
-				{ qty: "¼ cup", item: "chocolate chips" },
+				{ qty: "½ cup", item: "unsweetened coconut flakes", weigh: "coconutFlakes", note: "stands in for some of the oats" },
+				{ qty: "¼ cup", item: "chocolate chips", weigh: "chocolateChips" },
 				{ qty: "¼ cup", item: "chopped almonds" },
 			],
 		}),
@@ -165,8 +183,8 @@ const defs: Omit<Recipe, "id">[] = [
 			butter: "any nut butter",
 			sweetener: "honey or maple syrup",
 			extras: [
-				{ qty: "½ cup", item: "mini chocolate chips" },
-				{ qty: "2 tbsp", item: "cocoa powder" },
+				{ qty: "½ cup", item: "mini chocolate chips", weigh: "miniChocolateChips" },
+				{ qty: "2 tbsp", item: "cocoa powder", weigh: "cocoaPowder" },
 			],
 		}),
 		steps: oatBaseSteps,
@@ -300,7 +318,7 @@ const defs: Omit<Recipe, "id">[] = [
 		ingredients: [
 			{ qty: "1 cup", item: "walnuts" },
 			{ qty: "1¼ cups", item: "Medjool dates", note: "pitted" },
-			{ qty: "¼ cup", item: "cocoa powder" },
+			{ qty: "¼ cup", item: "cocoa powder", weigh: "cocoaPowder" },
 			{ qty: "½ tsp", item: "instant espresso powder", note: "optional, makes it taste more chocolatey" },
 			{ qty: "¼ tsp", item: "sea salt" },
 		],
@@ -324,7 +342,8 @@ const defs: Omit<Recipe, "id">[] = [
 			{ qty: "1½ cups", item: "raw cashews" },
 			{ qty: "¾ cup", item: "Medjool dates", note: "pitted" },
 			{ qty: "¼ cup", item: "unsweetened shredded coconut" },
-			{ qty: "1", item: "lemon", note: "zest + 2 tbsp juice" },
+			{ qty: "1", item: "lemon, zested", plural: "lemons, zested" },
+			{ qty: "2 tbsp", item: "fresh lemon juice" },
 			{ qty: "pinch", item: "salt" },
 		],
 		steps: [
@@ -348,7 +367,7 @@ const defs: Omit<Recipe, "id">[] = [
 			{ qty: "1 cup", item: "Medjool dates", note: "pitted" },
 			{ qty: "¾ cup", item: "walnuts" },
 			{ qty: "½ cup", item: "rolled oats" },
-			{ qty: "1", item: "carrot", note: "finely grated, ~½ cup" },
+			{ qty: "½ cup", item: "finely grated carrot", note: "small holes of a box grater" },
 			{ qty: "¼ cup", item: "shredded coconut", note: "plus more for rolling" },
 			{ qty: "1 tsp", item: "cinnamon" },
 			{ qty: "¼ tsp", item: "nutmeg or ginger" },
@@ -375,7 +394,7 @@ const defs: Omit<Recipe, "id">[] = [
 			{ qty: "1 cup", item: "Medjool dates", note: "pitted" },
 			{ qty: "¼ cup", item: "shredded coconut" },
 			{ qty: "2 tsp", item: "matcha powder", note: "plus a little for dusting" },
-			{ qty: "1 tbsp", item: "coconut oil", note: "melted" },
+			{ qty: "1 tbsp", item: "coconut oil", weigh: "coconutOil", note: "melted" },
 		],
 		steps: [
 			"Process cashews and coconut to a fine crumb.",
@@ -420,10 +439,10 @@ const defs: Omit<Recipe, "id">[] = [
 		tags: ["dates", "almond", "chocolate", "fruit", "no oats"],
 		art: { body: "#6b2a2a", shade: "#2c0d0f", bits: "chips", bitColor: "#d6304a" },
 		ingredients: [
-			{ qty: "1 cup", item: "almonds" },
+			{ qty: "1 cup", item: "almonds", weigh: "wholeAlmonds" },
 			{ qty: "1 cup", item: "Medjool dates", note: "pitted" },
 			{ qty: "½ cup", item: "dried tart cherries" },
-			{ qty: "3 tbsp", item: "cocoa powder" },
+			{ qty: "3 tbsp", item: "cocoa powder", weigh: "cocoaPowder" },
 			{ qty: "¼ tsp", item: "almond extract", note: "optional" },
 			{ qty: "pinch", item: "salt" },
 		],
@@ -447,12 +466,13 @@ const defs: Omit<Recipe, "id">[] = [
 		ingredients: [
 			{ qty: "1¼ cups", item: "old-fashioned rolled oats" },
 			{ qty: "2 tbsp", item: "hemp hearts or ground flax" },
-			{ qty: "½ cup", item: "sunflower seed butter", note: "stir it well first" },
+			{ qty: "½ cup", item: "sunflower seed butter", weigh: "sunflowerButter", note: "stir it well first" },
 			{ qty: "⅓ cup", item: "maple syrup or honey" },
 			{ qty: "1 tsp", item: "vanilla extract" },
 			{ qty: "1 tsp", item: "ground cinnamon" },
 			{ qty: "pinch", item: "salt" },
-			{ qty: "2 tbsp", item: "sugar + 1 tsp cinnamon", note: "for rolling" },
+			{ qty: "2 tbsp", item: "granulated sugar", weigh: "sugar", note: "for rolling" },
+			{ qty: "1 tsp", item: "ground cinnamon", note: "for rolling" },
 		],
 		steps: [
 			"Stir the oats, hemp hearts, sunflower seed butter, maple syrup, vanilla, cinnamon, and salt in a bowl until it clumps.",

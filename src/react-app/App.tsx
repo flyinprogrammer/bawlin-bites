@@ -145,7 +145,7 @@ export default function App() {
 	const openRecipe = recipes.find((r) => r.id === openId);
 	const topName = recipes.find((r) => r.id === topId)?.name;
 	const ticker = turbo
-		? ["⚠ KAIJU ATTACK ⚠", "EVACUATE THE SNACK BAR", "RESISTANCE IS FRUITLESS", "ENERGY LEVELS: CRITICAL", "DATES: DESTROYED", "HIT RESET TO CALM IT DOWN"]
+		? ["⚠ KAIJU ATTACK ⚠", "EVACUATE THE SNACK BAR", "RESISTANCE IS FRUITLESS", "ENERGY LEVELS: CRITICAL", "DATES: DESTROYED", "CATCH THE STOP BUTTON TO END THE MADNESS"]
 		: [
 				"NO OVEN REQUIRED",
 				topName ? `HI-SCORE: ${topName.toUpperCase()}` : "HI-SCORE: ??? (GO VOTE)",

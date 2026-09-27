@@ -67,12 +67,13 @@ export function BouncingReset({ onClick }: { onClick: () => void }) {
 			className={`reset-lofi${corner ? " corner" : ""}`}
 			style={{ background: COLORS[color] }}
 			onClick={onClick}
+			aria-label="Stop the madness: calm the kaiju, fix the site and go back to lo-fi"
 			onPointerEnter={() => (paused.current = true)}
 			onPointerLeave={() => (paused.current = false)}
 			onFocus={() => (paused.current = true)}
 			onBlur={() => (paused.current = false)}
 		>
-			↺ RESET TO LO-FI
+			🛑 STOP THE MADNESS!
 			{corner && <span className="corner-hit">CORNER!!</span>}
 		</button>
 	);

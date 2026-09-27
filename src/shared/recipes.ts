@@ -31,6 +31,11 @@ export interface Recipe {
 	source?: { name: string; url: string };
 	/** A "bonus pack" plug shown on the recipe screen. */
 	promo?: { title: string; blurb: string; cta: string; url: string };
+	/**
+	 * The kaiju's favorite: in turbo it refuses to smash this one, says this
+	 * line, and crowns it the #1 card instead.
+	 */
+	kaijuFave?: string;
 }
 
 const WELL_PLATED = { name: "Well Plated by Erin Clarke", url: "https://www.wellplated.com/energy-balls/" };
@@ -331,6 +336,7 @@ const defs: Omit<Recipe, "id">[] = [
 	{
 		name: "Carrot Cake Cart",
 		tagline: "Technically a vegetable. Technically.",
+		kaijuFave: "WHOA WHOA. not the carrot cake. i'm a bunny, not a monster. 🥕",
 		prepMins: 20,
 		totalMins: 20,
 		makes: "~18 balls",

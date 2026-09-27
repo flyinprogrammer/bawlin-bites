@@ -51,6 +51,7 @@ export default function App() {
 	const [calm] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 	const loose = turbo && !calm; // the kaiju leaves the hero and rampages down the page
 	const smash = useCallback((id: string) => setSmashed((s) => new Set(s).add(id)), []);
+	const [crowned, setCrowned] = useState<string | null>(null); // the kaiju's favorite, spared + promoted to #1
 	const [secretOpen, setSecretOpen] = useState(false);
 	const footRef = useRef<HTMLElement>(null);
 
@@ -91,6 +92,7 @@ export default function App() {
 				pos = 0;
 				setTurbo((t) => !t);
 				setSmashed(new Set());
+				setCrowned(null);
 				setSecretOpen(false);
 				blip("secret");
 			}
@@ -142,8 +144,10 @@ export default function App() {
 		if (sort === "top") list.sort((a, b) => score(b.r.id) - score(a.r.id) || a.i - b.i);
 		if (sort === "quick") list.sort((a, b) => a.r.totalMins - b.r.totalMins || a.i - b.i);
 		if (sort === "az") list.sort((a, b) => a.r.name.localeCompare(b.r.name));
+		const fave = list.findIndex(({ r }) => r.id === crowned);
+		if (fave > 0) list.unshift(...list.splice(fave, 1)); // the kaiju's pick jumps to the front
 		return list;
-	}, [filter, sort, score]);
+	}, [filter, sort, score, crowned]);
 
 	const random = () => {
 		const pool = shown.length ? shown : recipes.map((r, i) => ({ r, i }));
@@ -212,6 +216,7 @@ export default function App() {
 					onBerserk={() => {
 						setTurbo(true);
 						setSmashed(new Set());
+						setCrowned(null);
 						setSecretOpen(false);
 						blip("secret");
 					}}
@@ -276,6 +281,7 @@ export default function App() {
 							onVote={cast}
 							isTop={r.id === topId}
 							smashed={smashed.has(r.id)}
+							crowned={r.id === crowned}
 						/>
 					))}
 				</div>
@@ -305,7 +311,7 @@ export default function App() {
 				</section>
 			</footer>
 
-			{loose && <Rampage onSmash={smash} />}
+			{loose && <Rampage onSmash={smash} onCrown={setCrowned} />}
 
 			{turbo && (
 				<>
@@ -314,6 +320,7 @@ export default function App() {
 						onClick={() => {
 							setTurbo(false);
 							setSmashed(new Set()); // repairs every busted cartridge
+							setCrowned(null);
 							blip("close");
 						}}
 					/>

@@ -1713,3 +1713,78 @@ body.quake .recipes {
 .anger-6 .kaiju-bubble {
 	font-size: 15px;
 }
+
+/* ─── the kaiju's favorite (carrot cake) ───────────── */
+
+.cart.crowned,
+.turbo .cart.crowned {
+	background: linear-gradient(145deg, #ffcf4a, #ff9a1f 55%, #ffd76a);
+	border-color: #7a3d00;
+	clip-path: none; /* let the glow out */
+	transform: rotate(-1deg) scale(1.02);
+	box-shadow: 0 0 0 3px #ffd700, 0 0 28px rgb(255 190 0 / 0.75), 6px 6px 0 #7a3d00;
+	animation: crown-glow 1.2s ease-in-out infinite alternate;
+	z-index: 1;
+}
+.cart.crowned .cart-grip span {
+	background: #7a3d00;
+}
+.cart.crowned .cart-no {
+	background: #ffd700;
+}
+@keyframes crown-glow {
+	to {
+		box-shadow: 0 0 0 3px #fff3b0, 0 0 48px rgb(255 160 0 / 0.95), 6px 6px 0 #7a3d00;
+	}
+}
+.crown-badge {
+	position: absolute;
+	z-index: 3;
+	top: 6px;
+	left: 50%;
+	transform: translateX(-50%) rotate(-2deg);
+	font-family: var(--pixel);
+	font-size: 9px;
+	white-space: nowrap;
+	background: #221e2e;
+	color: #ffd700;
+	border: 2px solid #ffd700;
+	border-radius: 999px;
+	padding: 5px 9px;
+	pointer-events: none;
+}
+.sparkle {
+	position: absolute;
+	z-index: 31;
+	width: var(--s);
+	height: var(--s);
+	background: #ffd700;
+	box-shadow: 0 0 10px #ffd700;
+	clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+	pointer-events: none;
+	animation: rubble 1s cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
+}
+.kaiju-quip {
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: 33;
+	margin: 0;
+	max-width: 280px;
+	font-family: var(--pixel);
+	font-size: 11px;
+	line-height: 1.6;
+	background: #221e2e;
+	color: #ffe066;
+	border: 3px solid #ffd700;
+	border-radius: 12px;
+	padding: 10px 12px;
+	box-shadow: 4px 4px 0 #ff9a1f;
+	pointer-events: none;
+}
+.kaiju-quip[hidden] {
+	display: none;
+}
+.turbo .cart.crowned::after {
+	display: none; /* no turbo cracks on the favorite */
+}

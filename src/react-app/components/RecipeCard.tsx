@@ -13,6 +13,7 @@ export function RecipeCard({
 	onVote,
 	isTop,
 	smashed = false,
+	crowned = false,
 }: {
 	recipe: Recipe;
 	index: number;
@@ -23,15 +24,19 @@ export function RecipeCard({
 	isTop: boolean;
 	/** Busted up by the rampaging kaiju (turbo mode). */
 	smashed?: boolean;
+	/** Spared and crowned by the kaiju: glows gold and sits at #1. */
+	crowned?: boolean;
 }) {
 	// Deterministic "how badly it got hit" per card.
 	const tilt = ((index * 37) % 24) - 12;
 	return (
 		<article
-			className={`cart${smashed ? " smashed" : ""}`}
+			className={`cart${smashed ? " smashed" : ""}${crowned ? " crowned" : ""}`}
 			data-id={recipe.id}
+			data-fave={recipe.kaijuFave ? "" : undefined}
 			style={{ "--label": recipe.art.body, "--label-shade": recipe.art.shade, "--tilt": `${tilt || 9}deg` } as React.CSSProperties}
 		>
+			{crowned && <span className="crown-badge">🥕 BUNNY'S #1 🥕</span>}
 			{smashed && (
 				<span className="ko" aria-hidden="true">
 					K.O.
@@ -45,7 +50,7 @@ export function RecipeCard({
 					<span />
 				</div>
 				<div className="cart-label">
-					<span className="cart-no">No.{String(index + 1).padStart(2, "0")}</span>
+					<span className="cart-no">{crowned ? "#1" : `No.${String(index + 1).padStart(2, "0")}`}</span>
 					{isTop && <span className="cart-badge">HI-SCORE</span>}
 					<BallArt recipe={recipe} size={112} className="cart-ball" />
 				</div>

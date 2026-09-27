@@ -32,8 +32,8 @@ The bunny starts asleep; poke it to wake it up. Keep poking and it gets steadily
 the 7th poke in a row sends it berserk into **turbo mode** (so does the Konami code, typed or
 entered on the footer's cheat-code pad). In turbo it breaks loose and stomps down the page,
 K.O.-ing every recipe cartridge it touches while debris rains down. Except one: a recipe with
-`kaijuFave` set (currently Carrot Cake Cart) is spared, crowned in gold and moved to #1, and the
-kaiju tells you why. The **🛑 STOP THE MADNESS!**
+`kaijuFave` set (currently Carrot Cake Cart) is spared, crowned in gold and moved to #1 (it keeps the
+crown after the madness stops, until the page is refreshed), and the kaiju tells you why. The **🛑 STOP THE MADNESS!**
 button bounces around the screen like an idle DVD logo; catch it to repair the site.
 
 Both are original loops synthesized live with WebAudio in

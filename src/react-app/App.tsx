@@ -51,7 +51,8 @@ export default function App() {
 	const [calm] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 	const loose = turbo && !calm; // the kaiju leaves the hero and rampages down the page
 	const smash = useCallback((id: string) => setSmashed((s) => new Set(s).add(id)), []);
-	const [crowned, setCrowned] = useState<string | null>(null); // the kaiju's favorite, spared + promoted to #1
+	// The kaiju's favorite, spared + promoted to #1. It keeps the crown after the madness is stopped.
+	const [crowned, setCrowned] = useState<string | null>(null);
 	const [secretOpen, setSecretOpen] = useState(false);
 	const footRef = useRef<HTMLElement>(null);
 
@@ -92,7 +93,6 @@ export default function App() {
 				pos = 0;
 				setTurbo((t) => !t);
 				setSmashed(new Set());
-				setCrowned(null);
 				setSecretOpen(false);
 				blip("secret");
 			}
@@ -216,7 +216,6 @@ export default function App() {
 					onBerserk={() => {
 						setTurbo(true);
 						setSmashed(new Set());
-						setCrowned(null);
 						setSecretOpen(false);
 						blip("secret");
 					}}
@@ -320,7 +319,6 @@ export default function App() {
 						onClick={() => {
 							setTurbo(false);
 							setSmashed(new Set()); // repairs every busted cartridge
-							setCrowned(null);
 							blip("close");
 						}}
 					/>

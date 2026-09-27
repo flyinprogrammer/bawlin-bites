@@ -9,7 +9,7 @@ An arcade-flavored recipe site for no-bake energy balls, live at **https://bawls
 ## Develop
 
 ```sh
-npm install
+npm install        # Node 24 LTS (see .nvmrc)
 npm run dev        # http://localhost:5173, uses a local D1 automatically
 npm run lint
 npm run build

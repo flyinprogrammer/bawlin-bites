@@ -880,12 +880,25 @@ body:has(.turbo) {
 		margin-bottom: 6pt;
 	}
 	.print-sheet .box {
-		display: inline-block;
-		width: 10pt;
-		height: 10pt;
+		display: inline-grid;
+		place-items: center;
+		width: 11pt;
+		height: 11pt;
 		border: 1.5pt solid #000;
 		vertical-align: -1pt;
 		margin-right: 4pt;
+		font-size: 10pt;
+		font-weight: 700;
+		line-height: 1;
+	}
+	.print-sheet li.got b,
+	.print-sheet li.got {
+		text-decoration: line-through;
+		color: #555 !important;
+	}
+	.print-sheet li.got .box {
+		text-decoration: none;
+		color: #000 !important;
 	}
 	.print-sheet ol {
 		padding-left: 18pt;

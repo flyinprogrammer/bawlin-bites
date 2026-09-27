@@ -15,6 +15,7 @@ import { useVotes } from "./useVotes";
 type Sort = "top" | "quick" | "az";
 
 const FILTERS = ["nut-free", "kid-made", "dates", "oats", "chocolate", "coconut", "cashew", "peanut", "almond", "fruit", "no oats"];
+const NONE: ReadonlySet<number> = new Set();
 const sources = [...new Map(recipes.filter((r) => r.source).map((r) => [r.source!.name, r.source!])).values()];
 
 function idFromPath(path: string) {
@@ -34,6 +35,16 @@ export default function App() {
 	const [sound, setSoundState] = useState(soundOn);
 	const [turbo, setTurbo] = useState(false);
 	const [konamiPos, setKonamiPos] = useState(0);
+	// Ticked-off ingredients per recipe; kept while you browse and printed as ticked.
+	const [checks, setChecks] = useState<Record<string, ReadonlySet<number>>>({});
+	const toggleCheck = useCallback((id: string, i: number) => {
+		setChecks((all) => {
+			const next = new Set(all[id]);
+			if (next.has(i)) next.delete(i);
+			else next.add(i);
+			return { ...all, [id]: next };
+		});
+	}, []);
 	const [smashed, setSmashed] = useState<ReadonlySet<string>>(new Set());
 	const [calm] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 	const loose = turbo && !calm; // the kaiju leaves the hero and rampages down the page
@@ -302,8 +313,17 @@ export default function App() {
 
 			{openRecipe && (
 				<>
-					<RecipeDetail key={openRecipe.id} recipe={openRecipe} tally={tallies[openRecipe.id]} mine={mine[openRecipe.id]} onVote={cast} onClose={close} />
-					<PrintSheet recipe={openRecipe} />
+					<RecipeDetail
+						key={openRecipe.id}
+						recipe={openRecipe}
+						tally={tallies[openRecipe.id]}
+						mine={mine[openRecipe.id]}
+						onVote={cast}
+						onClose={close}
+						checked={checks[openRecipe.id] ?? NONE}
+						onCheck={(i) => toggleCheck(openRecipe.id, i)}
+					/>
+					<PrintSheet recipe={openRecipe} checked={checks[openRecipe.id] ?? NONE} />
 				</>
 			)}
 		</div>

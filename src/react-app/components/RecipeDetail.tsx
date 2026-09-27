@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { FOOD_PROCESSOR, needsFoodProcessor, type Recipe } from "../../shared/recipes";
 import type { Tally, Vote } from "../useVotes";
 import { blip } from "../sfx";
@@ -12,15 +12,19 @@ export function RecipeDetail({
 	mine,
 	onVote,
 	onClose,
+	checked,
+	onCheck,
 }: {
 	recipe: Recipe;
 	tally?: Tally;
 	mine?: Vote;
 	onVote: (id: string, v: Vote) => Promise<number>;
 	onClose: () => void;
+	/** Indexes of ingredients ticked off (shared with the print sheet). */
+	checked: ReadonlySet<number>;
+	onCheck: (index: number) => void;
 }) {
 	const ref = useRef<HTMLDialogElement>(null);
-	const [checked, setChecked] = useState<Set<number>>(new Set());
 
 	useEffect(() => {
 		const dialog = ref.current!;
@@ -30,12 +34,7 @@ export function RecipeDetail({
 
 	const toggle = (i: number) => {
 		blip("select");
-		setChecked((s) => {
-			const next = new Set(s);
-			if (next.has(i)) next.delete(i);
-			else next.add(i);
-			return next;
-		});
+		onCheck(i);
 	};
 
 	const allDone = checked.size === recipe.ingredients.length;
@@ -167,8 +166,8 @@ export function RecipeDetail({
 	);
 }
 
-/** Plain black-and-white version that only shows up on paper. */
-export function PrintSheet({ recipe }: { recipe: Recipe }) {
+/** Plain black-and-white version that only shows up on paper. Ticked ingredients print ticked. */
+export function PrintSheet({ recipe, checked }: { recipe: Recipe; checked: ReadonlySet<number> }) {
 	return (
 		<article className="print-sheet" aria-hidden="true">
 			<header>
@@ -186,8 +185,8 @@ export function PrintSheet({ recipe }: { recipe: Recipe }) {
 					<h2>Ingredients</h2>
 					<ul>
 						{recipe.ingredients.map((ing, i) => (
-							<li key={i}>
-								<span className="box" /> <b>{ing.qty}</b> {ing.item}
+							<li key={i} className={checked.has(i) ? "got" : ""}>
+								<span className="box">{checked.has(i) ? "✓" : ""}</span> <b>{ing.qty}</b> {ing.item}
 								{ing.note && <em> ({ing.note})</em>}
 							</li>
 						))}

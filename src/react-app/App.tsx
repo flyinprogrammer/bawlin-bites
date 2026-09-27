@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { recipes } from "../shared/recipes";
 import { Console } from "./components/Console";
 import { RecipeCard } from "./components/RecipeCard";
 import { PrintSheet, RecipeDetail } from "./components/RecipeDetail";
+import { SecretModal } from "./components/SecretModal";
+import { KONAMI } from "./konami";
 import { blip, setSound, soundOn } from "./sfx";
 import { useVotes } from "./useVotes";
 
@@ -10,7 +12,6 @@ type Sort = "top" | "quick" | "az";
 
 const FILTERS = ["kid-made", "dates", "oats", "chocolate", "coconut", "cashew", "peanut", "almond", "fruit", "no oats"];
 const sources = [...new Map(recipes.filter((r) => r.source).map((r) => [r.source!.name, r.source!])).values()];
-const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
 
 function idFromPath(path: string) {
 	const m = path.match(/^\/r\/([a-z0-9-]+)\/?$/);
@@ -24,6 +25,9 @@ export default function App() {
 	const [sort, setSort] = useState<Sort>("top");
 	const [sound, setSoundState] = useState(soundOn);
 	const [turbo, setTurbo] = useState(false);
+	const [konamiPos, setKonamiPos] = useState(0);
+	const [secretOpen, setSecretOpen] = useState(false);
+	const footRef = useRef<HTMLElement>(null);
 
 	// Tiny router: /r/<id> opens a recipe; back button closes it.
 	useEffect(() => {
@@ -54,15 +58,47 @@ export default function App() {
 	useEffect(() => {
 		let pos = 0;
 		const onKey = (e: KeyboardEvent) => {
-			pos = e.key === KONAMI[pos] ? pos + 1 : e.key === KONAMI[0] ? 1 : 0;
+			const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+			pos = key === KONAMI[pos] ? pos + 1 : key === KONAMI[0] ? 1 : 0;
 			if (pos === KONAMI.length) {
 				pos = 0;
 				setTurbo((t) => !t);
+				setSecretOpen(false);
 				blip("secret");
 			}
+			setKonamiPos(pos);
 		};
 		window.addEventListener("keydown", onKey);
 		return () => window.removeEventListener("keydown", onKey);
+	}, []);
+
+	// Hitting the bottom of the page for the first time crashes the secret modal in.
+	useEffect(() => {
+		const foot = footRef.current;
+		if (!foot) return;
+		const seen = () => {
+			try {
+				return localStorage.getItem("bb:secret-seen") === "1";
+			} catch {
+				return false;
+			}
+		};
+		if (seen()) return;
+		const io = new IntersectionObserver(
+			([entry]) => {
+				if (!entry.isIntersecting || document.querySelector("dialog[open]")) return;
+				io.disconnect();
+				try {
+					localStorage.setItem("bb:secret-seen", "1");
+				} catch {
+					/* ignore */
+				}
+				setSecretOpen(true);
+			},
+			{ threshold: 0.9 },
+		);
+		io.observe(foot);
+		return () => io.disconnect();
 	}, []);
 
 	const score = useCallback((id: string) => (tallies[id]?.up ?? 0) - (tallies[id]?.down ?? 0), [tallies]);
@@ -200,7 +236,7 @@ export default function App() {
 				</div>
 			</main>
 
-			<footer className="foot">
+			<footer className="foot" ref={footRef}>
 				<p>
 					BAWLIN' BITES · {new Date().getFullYear()} · MADE WITH DATES & LOVE
 				</p>
@@ -217,6 +253,8 @@ export default function App() {
 					. Psst: ↑ ↑ ↓ ↓ ← → ← → B A
 				</p>
 			</footer>
+
+			{secretOpen && <SecretModal progress={konamiPos} onClose={() => setSecretOpen(false)} />}
 
 			{openRecipe && (
 				<>

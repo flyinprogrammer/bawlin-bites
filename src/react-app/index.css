@@ -1307,3 +1307,6 @@ body.quake .app {
 		height: 42px;
 	}
 }
+.turbo .pip.on {
+	background: var(--ink);
+}

@@ -1,5 +1,6 @@
-import { memo, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { audioCtx, audioRunning, blip, onAudioStateChange } from "../sfx";
+import { memo, useEffect, useRef, useState } from "react";
+import { audioCtx, blip } from "../sfx";
+import { useAudioRunning } from "../useAudioRunning";
 
 // A pixel-art kaiju bunny, rasterized from simple shapes and auto-outlined.
 // Moods: asleep (sound off), scream (sound on but the browser hasn't unlocked
@@ -165,9 +166,6 @@ function Sprite({ mood, loose = false }: { mood: Mood; loose?: boolean }) {
 const MemoSprite = memo(Sprite);
 export const KaijuSprite = MemoSprite;
 
-function useAudioRunning() {
-	return useSyncExternalStore(onAudioStateChange, audioRunning, () => false);
-}
 
 // What the bunny says as you keep poking it. One more poke after the last line = berserk.
 const POKE_LINES = [
@@ -184,14 +182,12 @@ export function Kaiju({
 	sound,
 	turbo,
 	loose,
-	onToggleSound,
 	onBerserk,
 }: {
 	sound: boolean;
 	turbo: boolean;
 	/** The kaiju is off rampaging down the page, so the hero shows the wreckage. */
 	loose: boolean;
-	onToggleSound: (on: boolean) => void;
 	/** Poked one too many times: go turbo. */
 	onBerserk: () => void;
 }) {
@@ -295,11 +291,7 @@ export function Kaiju({
 				<button type="button" className="kaiju-cta" onClick={unlock}>
 					🔊 TURN ON THE SOUND
 				</button>
-			) : (
-				<button type="button" className="sound-btn" aria-pressed={sound} onClick={() => onToggleSound(!sound)}>
-					{sound ? "🔊 SOUND ON" : "🔇 SOUND OFF"}
-				</button>
-			)}
+			) : null}
 		</div>
 	);
 }

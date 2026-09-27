@@ -96,9 +96,25 @@ a {
 }
 
 .hero-ctas {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 14px;
+	/* three equal-width buttons: sound, start, random */
+	display: inline-grid;
+	grid-auto-flow: column;
+	grid-auto-columns: 1fr;
+	gap: 12px;
+}
+.hero-ctas .chunky {
+	font-size: 12px;
+	padding: 16px 12px;
+	white-space: nowrap;
+}
+.hero-copy {
+	container-type: inline-size;
+}
+/* not enough room for three across: stack them, still equal widths */
+@container (max-width: 590px) {
+	.hero-ctas {
+		grid-auto-flow: row;
+	}
 }
 
 .chunky {
@@ -1660,26 +1676,6 @@ body.quake .recipes {
 
 /* ─── sound button + poking the bunny ──────────────── */
 
-.sound-btn {
-	font-family: var(--pixel);
-	font-size: 11px;
-	padding: 10px 14px;
-	background: var(--ink);
-	color: var(--on-ink);
-	border: 3px solid var(--ink);
-	border-radius: 999px;
-	box-shadow: 3px 3px 0 var(--accent);
-	cursor: pointer;
-	touch-action: manipulation;
-}
-.sound-btn[aria-pressed="false"] {
-	background: var(--cream);
-	color: var(--ink);
-}
-.sound-btn:active {
-	transform: translate(2px, 2px);
-	box-shadow: 1px 1px 0 var(--accent);
-}
 .kaiju-stage {
 	touch-action: manipulation; /* rapid pokes shouldn't zoom the page */
 }

@@ -23,7 +23,7 @@ votes carry over. The Worker uses the same file to validate recipe ids.
 
 ## Sound
 
-Sound is **off by default** and has its own 🔊/🔇 button under the pixel kaiju bunny. No audio
+Sound is **off by default** and has its own 🔊/🔇 button, first in the hero button row. No audio
 is created until someone turns it on, so the browser never blocks or warns about anything. (A
 returning visitor who left sound on gets a screaming bunny asking for one click, since browsers
 need that before audio can play.) Music: a mellow lo-fi "Chill Mix", and a 168 BPM "Turbo Mix".

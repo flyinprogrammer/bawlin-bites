@@ -9,7 +9,8 @@ import { KonamiPad } from "./components/KonamiPad";
 import { SecretModal } from "./components/SecretModal";
 import { KONAMI } from "./konami";
 import { setMusic } from "./music";
-import { blip, setSound, soundOn } from "./sfx";
+import { audioCtx, blip, setSound, soundOn } from "./sfx";
+import { useAudioRunning } from "./useAudioRunning";
 import { useVotes } from "./useVotes";
 
 type Sort = "top" | "quick" | "az";
@@ -33,6 +34,7 @@ export default function App() {
 	const [filter, setFilter] = useState<string | null>(null);
 	const [sort, setSort] = useState<Sort>("top");
 	const [sound, setSoundState] = useState(soundOn);
+	const audioOn = useAudioRunning();
 	const [turbo, setTurbo] = useState(false);
 	const [konamiPos, setKonamiPos] = useState(0);
 	// Ticked-off ingredients per recipe; kept while you browse and printed as ticked.
@@ -182,6 +184,19 @@ export default function App() {
 						thumbs up.
 					</p>
 					<div className="hero-ctas">
+						<button
+							type="button"
+							className={`chunky sound-toggle${sound ? "" : " ghost"}`}
+							aria-pressed={sound && audioOn}
+							onClick={() => {
+								// Sound was left on from a past visit but the browser is holding it: this click unlocks it.
+								if (sound && !audioOn) return void audioCtx().resume();
+								setSound(!sound);
+								setSoundState(!sound);
+							}}
+						>
+							{sound ? (audioOn ? "🔊 SOUND ON" : "🔊 TAP FOR SOUND") : "🔇 SOUND OFF"}
+						</button>
 						<button type="button" className="chunky" onClick={toRecipes}>
 							▶ PRESS START
 						</button>
@@ -194,10 +209,6 @@ export default function App() {
 					sound={sound}
 					turbo={turbo}
 					loose={loose}
-					onToggleSound={(on) => {
-						setSound(on);
-						setSoundState(on);
-					}}
 					onBerserk={() => {
 						setTurbo(true);
 						setSmashed(new Set());

@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { blip } from "../sfx";
 import { KaijuSprite } from "./Kaiju";
 
-const VX = 150; // px/s sideways
-const VY = 80; // px/s down the page
+const VX = 320; // px/s sideways
+const VY = 170; // px/s down the page
 
 /**
  * Turbo mode: the kaiju bunny stomps its way down the page, zig-zagging and

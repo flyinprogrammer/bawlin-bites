@@ -5,6 +5,7 @@ import { Debris, Kaiju } from "./components/Kaiju";
 import { Rampage } from "./components/Rampage";
 import { RecipeCard } from "./components/RecipeCard";
 import { PrintSheet, RecipeDetail } from "./components/RecipeDetail";
+import { KonamiPad } from "./components/KonamiPad";
 import { SecretModal } from "./components/SecretModal";
 import { KONAMI } from "./konami";
 import { setMusic } from "./music";
@@ -109,7 +110,7 @@ export default function App() {
 				}
 				setSecretOpen(true);
 			},
-			{ threshold: 0.9 },
+			{ threshold: 0.5 },
 		);
 		io.observe(foot);
 		return () => io.disconnect();
@@ -182,9 +183,15 @@ export default function App() {
 					sound={sound}
 					turbo={turbo}
 					loose={loose}
-					onToggle={(on) => {
+					onToggleSound={(on) => {
 						setSound(on);
 						setSoundState(on);
+					}}
+					onBerserk={() => {
+						setTurbo(true);
+						setSmashed(new Set());
+						setSecretOpen(false);
+						blip("secret");
 					}}
 				/>
 			</header>
@@ -266,8 +273,14 @@ export default function App() {
 							</a>
 						</span>
 					))}
-					. Psst: ↑ ↑ ↓ ↓ ← → ← → B A
+					.
 				</p>
+				<section className="foot-cheat" aria-labelledby="cheat-title">
+					<h2 id="cheat-title">
+						CHEAT CODE <span>{turbo ? "· TURBO IS ON (ENTER AGAIN TO STOP)" : "· UNLOCKS TURBO MODE"}</span>
+					</h2>
+					<KonamiPad progress={konamiPos} />
+				</section>
 			</footer>
 
 			{loose && <Rampage onSmash={smash} />}

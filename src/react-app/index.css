@@ -1208,14 +1208,6 @@ body.quake .recipes {
 	border-top-color: var(--ink);
 	border-left-color: var(--ink);
 }
-.kaiju-caption {
-	font-family: var(--pixel);
-	font-size: 10px;
-	background: var(--ink);
-	color: var(--on-ink);
-	padding: 6px 10px;
-	border-radius: 999px;
-}
 
 /* cute: lo-fi mode, a very good bunny */
 .mood-cute {
@@ -1598,4 +1590,117 @@ body.quake .recipes {
 		transform: translate(var(--dx), var(--dy)) rotate(400deg);
 		opacity: 0;
 	}
+}
+
+/* ─── footer cheat-code pad ────────────────────────── */
+
+.foot-cheat {
+	max-width: 520px;
+	margin: 28px auto 0;
+	padding: 18px 16px 20px;
+	background: var(--cream);
+	border: 3px solid var(--ink);
+	border-radius: 16px;
+	box-shadow: 5px 5px 0 var(--accent);
+}
+.foot-cheat h2 {
+	font-family: var(--pixel);
+	font-size: 12px;
+	margin: 0 0 14px;
+	line-height: 1.8;
+}
+.foot-cheat h2 span {
+	font-size: 8px;
+	color: var(--hot);
+}
+.foot-cheat .secret-pad {
+	margin-bottom: 0;
+}
+.foot-cheat .secret-pad button {
+	width: 52px;
+	height: 52px; /* thumb-sized */
+}
+@media (max-width: 480px) {
+	.foot-cheat .secret-pad {
+		gap: 6px;
+	}
+	.foot-cheat .secret-pad button {
+		width: 46px;
+		height: 46px;
+	}
+}
+.secret-pad button {
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation; /* no double-tap zoom while mashing buttons */
+}
+@media (max-width: 480px) {
+	.secret-code {
+		gap: 4px;
+		flex-wrap: nowrap;
+	}
+	.secret-code li {
+		width: 26px;
+		height: 30px;
+		font-size: 10px;
+	}
+}
+
+/* ─── sound button + poking the bunny ──────────────── */
+
+.sound-btn {
+	font-family: var(--pixel);
+	font-size: 11px;
+	padding: 10px 14px;
+	background: var(--ink);
+	color: var(--on-ink);
+	border: 3px solid var(--ink);
+	border-radius: 999px;
+	box-shadow: 3px 3px 0 var(--accent);
+	cursor: pointer;
+	touch-action: manipulation;
+}
+.sound-btn[aria-pressed="false"] {
+	background: var(--cream);
+	color: var(--ink);
+}
+.sound-btn:active {
+	transform: translate(2px, 2px);
+	box-shadow: 1px 1px 0 var(--accent);
+}
+.kaiju-stage {
+	touch-action: manipulation; /* rapid pokes shouldn't zoom the page */
+}
+
+/* Each poke winds it up a little more. */
+.anger-1 .kaiju-sprite { animation: yell 0.3s steps(2) 2; }
+.anger-2 .kaiju-sprite { animation: yell 0.22s steps(2) infinite; }
+.anger-3 { --spine: #ffb36b; }
+.anger-3 .kaiju-sprite { animation: yell 0.16s steps(2) infinite; }
+.anger-4 { --spine: #ff8a3d; }
+.anger-4 .kaiju-sprite { animation: yell 0.12s steps(2) infinite; }
+.anger-5,
+.anger-6 { --spine: #ff2a2a; }
+.anger-5 .kaiju-sprite { animation: yell 0.08s steps(2) infinite; }
+.anger-6 .kaiju-sprite {
+	animation: yell 0.06s steps(2) infinite;
+	filter: drop-shadow(0 0 16px rgb(255 42 42 / 0.8)) drop-shadow(6px 6px 0 rgb(34 30 46 / 0.3));
+}
+.anger .kaiju-bubble {
+	transition: transform 0.1s;
+}
+.anger-3 .kaiju-bubble,
+.anger-4 .kaiju-bubble {
+	border-color: var(--hot);
+}
+.anger-5 .kaiju-bubble,
+.anger-6 .kaiju-bubble {
+	background: var(--night);
+	color: #ffe066;
+	border-color: #ff2a2a;
+	box-shadow: 5px 5px 0 #ff2a2a;
+	font-size: 13px;
+	animation: yell 0.1s steps(2) infinite;
+}
+.anger-6 .kaiju-bubble {
+	font-size: 15px;
 }

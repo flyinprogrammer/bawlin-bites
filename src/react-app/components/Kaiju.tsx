@@ -1,5 +1,5 @@
-import { memo, useSyncExternalStore } from "react";
-import { audioCtx, audioRunning, onAudioStateChange } from "../sfx";
+import { memo, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { audioCtx, audioRunning, blip, onAudioStateChange } from "../sfx";
 
 // A pixel-art kaiju bunny, rasterized from simple shapes and auto-outlined.
 // Moods: asleep (sound off), scream (sound on but the browser hasn't unlocked
@@ -169,34 +169,89 @@ function useAudioRunning() {
 	return useSyncExternalStore(onAudioStateChange, audioRunning, () => false);
 }
 
+// What the bunny says as you keep poking it. One more poke after the last line = berserk.
+const POKE_LINES = [
+	"hehe, that tickles ♪",
+	"okay… that's enough poking",
+	"i'm serious. please stop.",
+	"my spines are getting spicy…",
+	"DO NOT POKE THE KAIJU",
+	"LAST WARNING!!! 😤",
+];
+const CALM_DOWN_MS = 3500; // stop poking this long and it forgives you
+
 export function Kaiju({
 	sound,
 	turbo,
 	loose,
-	onToggle,
+	onToggleSound,
+	onBerserk,
 }: {
 	sound: boolean;
 	turbo: boolean;
 	/** The kaiju is off rampaging down the page, so the hero shows the wreckage. */
 	loose: boolean;
-	onToggle: (on: boolean) => void;
+	onToggleSound: (on: boolean) => void;
+	/** Poked one too many times: go turbo. */
+	onBerserk: () => void;
 }) {
 	const running = useAudioRunning();
 	const locked = sound && !running; // sound is on but the browser hasn't let audio start yet
-	const mood: Mood = locked ? "scream" : turbo ? (loose ? "gone" : "rage") : sound ? "cute" : "asleep";
+	const [woken, setWoken] = useState(false);
+	const [pokes, setPokes] = useState(0);
+	const calm = useRef<ReturnType<typeof setTimeout>>(undefined);
+	useEffect(() => () => clearTimeout(calm.current), []);
+
+	const awake = woken || sound;
+	const anger = turbo ? 0 : pokes; // 0-6
+	const mood: Mood = locked
+		? "scream"
+		: turbo
+			? loose
+				? "gone"
+				: "rage"
+			: !awake
+				? "asleep"
+				: anger >= 5
+					? "rage"
+					: anger >= 3
+						? "scream"
+						: "cute";
 	const unlock = () => void audioCtx().resume();
 
-	const bubble = {
-		scream: null,
-		cute: "♪ just vibin' · CHILL MIX",
-		rage: sound ? "RAAAWR!!! ♪ TURBO MIX" : "RAAAWR!!! (muted, still mad)",
-		asleep: "zzz… TAP ME FOR TUNES ♪",
-		gone: "⚠ IT GOT LOOSE!! ⚠ SCROLL DOWN",
-	}[mood];
+	const poke = () => {
+		if (locked) return unlock();
+		if (turbo) return blip("down");
+		if (!awake) {
+			setWoken(true);
+			return blip("coin");
+		}
+		const next = pokes + 1;
+		clearTimeout(calm.current);
+		if (next > POKE_LINES.length) {
+			setPokes(0);
+			onBerserk();
+			return;
+		}
+		blip(next >= 5 ? "down" : "select");
+		setPokes(next);
+		calm.current = setTimeout(() => setPokes(0), CALM_DOWN_MS);
+	};
+
+	const bubble =
+		anger > 0
+			? POKE_LINES[anger - 1]
+			: {
+					scream: null,
+					cute: woken && !sound ? "oh hi! (psst: hit SOUND for tunes ♪)" : "♪ just vibin' · CHILL MIX",
+					rage: sound ? "RAAAWR!!! ♪ TURBO MIX" : "RAAAWR!!!",
+					asleep: "zzz… (poke me)",
+					gone: "⚠ IT GOT LOOSE!! ⚠ SCROLL DOWN",
+				}[mood];
 
 	return (
-		<div className={`kaiju mood-${mood}`}>
-			{mood === "scream" ? (
+		<div className={`kaiju mood-${mood}${anger ? ` anger anger-${anger}` : ""}`}>
+			{locked ? (
 				<p className="kaiju-bubble scream" role="status">
 					<b>HEY!! YOU!!!</b>
 					CLICK THE BUTTON &amp; CRANK YOUR VOLUME!!!
@@ -206,15 +261,9 @@ export function Kaiju({
 					{bubble}
 				</p>
 			)}
-			<button
-				type="button"
-				className="kaiju-stage"
-				aria-pressed={sound && !locked}
-				aria-label={sound ? "Kaiju bunny: sound on. Click to mute." : "Kaiju bunny: sound off. Click to turn sound on."}
-				onClick={() => (locked ? unlock() : onToggle(!sound))}
-			>
+			<button type="button" className="kaiju-stage" aria-label="Poke the kaiju bunny" onClick={poke}>
 				<MemoSprite mood={mood} />
-				{mood === "rage" && (
+				{mood === "rage" && !anger && (
 					<span className="kaiju-breath" aria-hidden="true">
 						<span className="beam" />
 					</span>
@@ -227,7 +276,7 @@ export function Kaiju({
 						<span>♥</span>
 					</span>
 				)}
-				{mood === "scream" && (
+				{(locked || anger >= 3) && (
 					<span className="kaiju-yell" aria-hidden="true">
 						<span>!!</span>
 						<span>!</span>
@@ -242,12 +291,14 @@ export function Kaiju({
 					</span>
 				)}
 			</button>
-			{mood === "scream" ? (
+			{locked ? (
 				<button type="button" className="kaiju-cta" onClick={unlock}>
 					🔊 TURN ON THE SOUND
 				</button>
 			) : (
-				<span className="kaiju-caption">{sound ? "SOUND ON · TAP TO MUTE" : "SOUND OFF · TAP TO WAKE"}</span>
+				<button type="button" className="sound-btn" aria-pressed={sound} onClick={() => onToggleSound(!sound)}>
+					{sound ? "🔊 SOUND ON" : "🔇 SOUND OFF"}
+				</button>
 			)}
 		</div>
 	);

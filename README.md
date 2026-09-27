@@ -23,13 +23,18 @@ votes carry over. The Worker uses the same file to validate recipe ids.
 
 ## Sound
 
-Sound is **off by default**; the pixel kaiju bunny in the hero sleeps until someone taps it, then
-turns into a cute, swaying lo-fi bunny ("Chill Mix"). No audio is created until that tap, so the
-browser never blocks or warns about anything. (A returning visitor who left sound on gets a
-screaming bunny asking them to click, since browsers need one click before audio can play.) Konami mode turns it into a rampaging kaiju: the 168 BPM
-"Turbo Mix", the city on fire, and the bunny breaking loose to stomp its way down the page,
-K.O.-ing every recipe cartridge it touches while debris rains down. The **🛑 STOP THE MADNESS!** button
-bounces around the screen like an idle DVD logo; catch it to repair the site. Tap the bunny to mute (it falls asleep) or unmute. Both are original loops synthesized live with WebAudio in
+Sound is **off by default** and has its own 🔊/🔇 button under the pixel kaiju bunny. No audio
+is created until someone turns it on, so the browser never blocks or warns about anything. (A
+returning visitor who left sound on gets a screaming bunny asking for one click, since browsers
+need that before audio can play.) Music: a mellow lo-fi "Chill Mix", and a 168 BPM "Turbo Mix".
+
+The bunny starts asleep; poke it to wake it up. Keep poking and it gets steadily less amused, and
+the 7th poke in a row sends it berserk into **turbo mode** (so does the Konami code, typed or
+entered on the footer's cheat-code pad). In turbo it breaks loose and stomps down the page,
+K.O.-ing every recipe cartridge it touches while debris rains down. The **🛑 STOP THE MADNESS!**
+button bounces around the screen like an idle DVD logo; catch it to repair the site.
+
+Both are original loops synthesized live with WebAudio in
 [`src/react-app/music.ts`](src/react-app/music.ts), with no audio files.
 
 ## How votes work

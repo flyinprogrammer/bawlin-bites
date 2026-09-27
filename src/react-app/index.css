@@ -6,6 +6,7 @@
 	--ink: var(--night);
 	--cream: #fffaf2;
 	--accent: #ff5fa2;
+	--on-ink: var(--accent); /* text on an ink-colored background */
 	--hot: #ff5a36;
 	--go: #2fa36b;
 	--pixel: "Press Start 2P", ui-monospace, monospace;
@@ -105,7 +106,7 @@ a {
 	font-size: 13px;
 	padding: 16px 20px;
 	background: var(--ink);
-	color: var(--accent);
+	color: var(--on-ink);
 	border: 3px solid var(--ink);
 	border-radius: 12px;
 	box-shadow: 4px 4px 0 var(--cream);
@@ -133,7 +134,7 @@ a {
 
 .marquee {
 	background: var(--ink);
-	color: var(--accent);
+	color: var(--on-ink);
 	font-family: var(--pixel);
 	font-size: 13px;
 	overflow: hidden;
@@ -203,7 +204,7 @@ a {
 }
 .chip.on {
 	background: var(--ink);
-	color: var(--accent);
+	color: var(--on-ink);
 }
 
 .sort {
@@ -225,7 +226,7 @@ a {
 
 .offline {
 	background: var(--ink);
-	color: var(--accent);
+	color: var(--on-ink);
 	display: inline-block;
 	padding: 6px 12px;
 	border-radius: 8px;
@@ -318,7 +319,7 @@ a {
 	font-family: var(--pixel);
 	font-size: 8px;
 	background: var(--hot);
-	color: #fff;
+	color: var(--night);
 	border: 2px solid var(--ink);
 	padding: 3px 5px;
 	border-radius: 4px;
@@ -617,7 +618,7 @@ a {
 	font-size: 13px;
 	padding: 14px 18px;
 	background: var(--ink);
-	color: var(--accent);
+	color: var(--on-ink);
 	border: 3px solid var(--ink);
 	border-radius: 10px;
 	box-shadow: 4px 4px 0 var(--accent);
@@ -716,7 +717,7 @@ a {
 	width: 36px;
 	height: 36px;
 	background: var(--ink);
-	color: var(--accent);
+	color: var(--on-ink);
 	font-family: var(--pixel);
 	font-size: 12px;
 	border-radius: 8px;
@@ -760,6 +761,7 @@ a {
 	--ink: #f3ece0;
 	--cream: #231d2e;
 	--accent: #ff2e88;
+	--on-ink: #c2105a; /* ink is light in turbo: deeper pink keeps 5:1 contrast */
 	color: var(--ink);
 }
 .turbo .cart-ball {
@@ -911,7 +913,7 @@ body:has(.turbo) {
 .promo-title {
 	font-family: var(--pixel);
 	font-size: 10px;
-	color: var(--accent);
+	color: var(--on-ink);
 }
 .promo p {
 	margin: 8px 0 14px;
@@ -1072,7 +1074,7 @@ body.quake .recipes {
 }
 .secret-code li.hit {
 	background: var(--ink);
-	color: var(--accent);
+	color: var(--on-ink);
 	transform: translateY(3px);
 	box-shadow: 0 1px 0 var(--ink);
 }
@@ -1088,7 +1090,7 @@ body.quake .recipes {
 	font-family: var(--pixel);
 	font-size: 16px;
 	background: var(--ink);
-	color: var(--accent);
+	color: var(--on-ink);
 	border: 3px solid var(--ink);
 	border-radius: 50%;
 	cursor: pointer;
@@ -1210,7 +1212,7 @@ body.quake .recipes {
 	font-family: var(--pixel);
 	font-size: 10px;
 	background: var(--ink);
-	color: var(--accent);
+	color: var(--on-ink);
 	padding: 6px 10px;
 	border-radius: 999px;
 }
@@ -1255,9 +1257,10 @@ body.quake .recipes {
 /* scream: sound is on but the browser hasn't let audio start yet */
 .kaiju-bubble.scream {
 	font-size: 13px;
-	background: var(--hot);
-	color: #fff;
-	text-shadow: 2px 2px 0 var(--ink);
+	background: var(--night);
+	color: #fffaf2;
+	border-color: var(--hot);
+	box-shadow: 5px 5px 0 var(--hot);
 	justify-self: center;
 	margin-right: 0;
 	text-align: center;
@@ -1268,7 +1271,13 @@ body.quake .recipes {
 	display: block;
 	font-size: 24px;
 	line-height: 1.3;
-	color: var(--accent);
+	color: #ffe066;
+	text-shadow: 3px 3px 0 var(--hot);
+}
+.kaiju-bubble.scream::after,
+.mood-rage .kaiju-bubble::after {
+	border-top-color: var(--hot);
+	border-left-color: var(--hot);
 }
 @keyframes yell {
 	0% { transform: translate(-2px, 1px) rotate(-2deg); }
@@ -1304,7 +1313,7 @@ body.quake .recipes {
 	font-size: 14px;
 	padding: 16px 20px;
 	background: var(--hot);
-	color: #fff;
+	color: var(--night);
 	border: 3px solid var(--ink);
 	border-radius: 12px;
 	box-shadow: 5px 5px 0 var(--ink);
@@ -1366,8 +1375,10 @@ body.quake .recipes {
 	50% { fill: #ffe066; }
 }
 .mood-rage .kaiju-bubble {
-	background: #ff2a2a;
-	color: #fff;
+	background: var(--night);
+	color: #ffe066;
+	border-color: #ff2a2a;
+	box-shadow: 5px 5px 0 #ff2a2a;
 	animation: yell 0.12s steps(2) infinite;
 }
 .kaiju-breath {
@@ -1481,7 +1492,7 @@ body.quake .recipes {
 .turbo .marquee {
 	transform: rotate(-4deg);
 	background: #ff2a2a;
-	color: #fff;
+	color: #120e18;
 }
 
 .debris {

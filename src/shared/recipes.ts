@@ -428,6 +428,35 @@ const defs: Omit<Recipe, "id">[] = [
 			"Roll into balls.",
 		],
 	},
+	{
+		name: "Snickerdoodle Safe Mode",
+		tagline: "Nut-free. School-safe. Cinnamon-sugar cheat code.",
+		prepMins: 10,
+		totalMins: 40,
+		makes: "~18 balls",
+		difficulty: 1,
+		stats: { energy: 4, sweet: 4, crunch: 2 },
+		tags: ["oats", "nut-free", "kid-made"],
+		art: { body: "#dcae72", shade: "#8a5a2b", bits: "crumbs", bitColor: "#6b3418" },
+		ingredients: [
+			{ qty: "1¼ cups", item: "old-fashioned rolled oats" },
+			{ qty: "2 tbsp", item: "hemp hearts or ground flax" },
+			{ qty: "½ cup", item: "sunflower seed butter", note: "stir it well first" },
+			{ qty: "⅓ cup", item: "maple syrup or honey" },
+			{ qty: "1 tsp", item: "vanilla extract" },
+			{ qty: "1 tsp", item: "ground cinnamon" },
+			{ qty: "pinch", item: "salt" },
+			{ qty: "2 tbsp", item: "sugar + 1 tsp cinnamon", note: "for rolling" },
+		],
+		steps: [
+			"Stir the oats, hemp hearts, sunflower seed butter, maple syrup, vanilla, cinnamon, and salt in a bowl until it clumps.",
+			"Too crumbly? Add a spoon more sunflower seed butter. Too sticky? A spoon more oats.",
+			"Chill the bowl for 30 minutes so it's easier to roll.",
+			"Roll into 1-inch balls, then roll each one in the cinnamon sugar.",
+			"Store in the fridge in an airtight container for up to 2 weeks.",
+		],
+		tip: "Packing these for school? Check that your oats and sunflower seed butter are made in a nut-free facility.",
+	},
 ];
 
 export function slugify(name: string) {

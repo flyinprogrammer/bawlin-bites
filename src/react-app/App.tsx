@@ -13,7 +13,7 @@ import { useVotes } from "./useVotes";
 
 type Sort = "top" | "quick" | "az";
 
-const FILTERS = ["kid-made", "dates", "oats", "chocolate", "coconut", "cashew", "peanut", "almond", "fruit", "no oats"];
+const FILTERS = ["nut-free", "kid-made", "dates", "oats", "chocolate", "coconut", "cashew", "peanut", "almond", "fruit", "no oats"];
 const sources = [...new Map(recipes.filter((r) => r.source).map((r) => [r.source!.name, r.source!])).values()];
 
 function idFromPath(path: string) {

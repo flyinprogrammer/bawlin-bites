@@ -1,16 +1,23 @@
-// Tiny square-wave blips via WebAudio. On by default; the kaiju bunny toggles it.
+// Tiny square-wave blips via WebAudio. Off by default; the kaiju bunny toggles it.
+// The AudioContext is only created once sound is wanted, so browsers never
+// complain about audio trying to start before the visitor has interacted.
 let ctx: AudioContext | undefined;
-let enabled = true;
+let enabled = false;
+const listeners = new Set<() => void>();
 
 try {
-	enabled = localStorage.getItem("bb:sound") !== "off";
+	enabled = localStorage.getItem("bb:sound") === "on";
 } catch {
 	/* storage unavailable */
 }
 
 /** Shared AudioContext for blips and music (created lazily). */
 export function audioCtx() {
-	ctx ??= new AudioContext();
+	if (!ctx) {
+		ctx = new AudioContext();
+		ctx.addEventListener("statechange", () => listeners.forEach((l) => l()));
+		listeners.forEach((l) => l());
+	}
 	return ctx;
 }
 
@@ -20,9 +27,8 @@ export function audioRunning() {
 }
 
 export function onAudioStateChange(cb: () => void) {
-	const c = audioCtx();
-	c.addEventListener("statechange", cb);
-	return () => c.removeEventListener("statechange", cb);
+	listeners.add(cb);
+	return () => listeners.delete(cb);
 }
 
 export function soundOn() {

@@ -167,7 +167,7 @@ export function Kaiju({
 		scream: null,
 		cute: "♪ just vibin' · CHILL MIX",
 		rage: sound ? "RAAAWR!!! ♪ TURBO MIX" : "RAAAWR!!! (muted, still mad)",
-		asleep: "zzz… TAP TO WAKE",
+		asleep: "zzz… TAP ME FOR TUNES ♪",
 	}[mood];
 
 	return (

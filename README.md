@@ -23,9 +23,10 @@ votes carry over. The Worker uses the same file to validate recipe ids.
 
 ## Sound
 
-Sound is **on by default**. Browsers block audio until the first click, so until then the pixel
-kaiju bunny screams at visitors to hit its button and crank the volume. After that it's a cute,
-swaying lo-fi bunny ("Chill Mix"). Konami mode turns it into a rampaging kaiju: the 168 BPM
+Sound is **off by default**; the pixel kaiju bunny in the hero sleeps until someone taps it, then
+turns into a cute, swaying lo-fi bunny ("Chill Mix"). No audio is created until that tap, so the
+browser never blocks or warns about anything. (A returning visitor who left sound on gets a
+screaming bunny asking them to click, since browsers need one click before audio can play.) Konami mode turns it into a rampaging kaiju: the 168 BPM
 "Turbo Mix", a city on fire, and the whole site shaking, cracking and raining debris, until someone
 hits **↺ RESET TO LO-FI**. Tap the bunny to mute (it falls asleep) or unmute. Both are original loops synthesized live with WebAudio in
 [`src/react-app/music.ts`](src/react-app/music.ts), with no audio files.

@@ -11,12 +11,14 @@ export function Console({
 	onB,
 	onMenu,
 	sound,
+	track,
 }: {
 	featured: Recipe;
 	onA: () => void;
 	onB: () => void;
 	onMenu: () => void;
 	sound: boolean;
+	track: string;
 }) {
 	const [angle, setAngle] = useState(0);
 	const hubRef = useRef<HTMLDivElement>(null);
@@ -65,7 +67,10 @@ export function Console({
 					<div className="screen-ball">
 						<BallArt recipe={featured} size={56} />
 					</div>
-					<span className="screen-hint blink">◀ CRANK TO SCROLL</span>
+					<span className="screen-hint">
+						{sound && <span className="now-playing">♪ NOW PLAYING: {track}</span>}
+						<span className="blink">◀ CRANK TO SCROLL</span>
+					</span>
 				</div>
 			</div>
 			<div className="console-controls">

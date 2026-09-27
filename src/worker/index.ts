@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { recipeIds } from "../shared/recipes";
+import { RENAMED, recipeIds } from "../shared/recipes";
 
 type Tally = { up: number; down: number };
 
@@ -20,6 +20,15 @@ function ensureSchema(db: D1Database) {
 			)`,
 		)
 		.run()
+		.then(() =>
+			// Carry votes over from renamed recipes. Idempotent: once moved, nothing matches.
+			db.batch(
+				Object.entries(RENAMED).flatMap(([from, to]) => [
+					db.prepare("UPDATE OR IGNORE votes SET recipe_id = ? WHERE recipe_id = ?").bind(to, from),
+					db.prepare("DELETE FROM votes WHERE recipe_id = ?").bind(from),
+				]),
+			),
+		)
 		.catch((err) => {
 			schemaReady = undefined;
 			throw err;

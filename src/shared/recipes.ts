@@ -10,6 +10,7 @@ export interface Ingredient {
 }
 
 export interface Recipe {
+	/** URL slug + vote key. Derived from `name`, never written by hand. */
 	id: string;
 	name: string;
 	tagline: string;
@@ -56,9 +57,8 @@ function oatBase(opts: { oats?: string; butter: string; sweetener: string; extra
 	];
 }
 
-export const recipes: Recipe[] = [
+const defs: Omit<Recipe, "id">[] = [
 	{
-		id: "classic-chip",
 		name: "Classic Chip",
 		tagline: "Player 1. The default skin. Still undefeated.",
 		prepMins: 10,
@@ -78,7 +78,6 @@ export const recipes: Recipe[] = [
 		source: WELL_PLATED,
 	},
 	{
-		id: "trail-mix",
 		name: "Trail Mix",
 		tagline: "Side quest snack. Pockets not included.",
 		prepMins: 10,
@@ -102,7 +101,6 @@ export const recipes: Recipe[] = [
 		source: WELL_PLATED,
 	},
 	{
-		id: "white-choc-cranberry",
 		name: "Cran-Snow Combo",
 		tagline: "White chocolate + cranberry. Seasonal event, all year.",
 		prepMins: 10,
@@ -125,7 +123,6 @@ export const recipes: Recipe[] = [
 		source: WELL_PLATED,
 	},
 	{
-		id: "almond-joy",
 		name: "Almond Joy-stick",
 		tagline: "Coconut, almond, chocolate. Press ↑↑↓↓ for extra joy.",
 		prepMins: 10,
@@ -150,7 +147,6 @@ export const recipes: Recipe[] = [
 		source: WELL_PLATED,
 	},
 	{
-		id: "double-chocolate",
 		name: "Double Choc Boss",
 		tagline: "Cocoa dough, mini chips. Final boss energy.",
 		prepMins: 10,
@@ -173,7 +169,6 @@ export const recipes: Recipe[] = [
 		source: WELL_PLATED,
 	},
 	{
-		id: "oatmeal-raisin",
 		name: "Oatmeal Raisin Cookie",
 		tagline: "Looks like chocolate chip. It is not. Beloved anyway.",
 		prepMins: 10,
@@ -196,7 +191,6 @@ export const recipes: Recipe[] = [
 		source: WELL_PLATED,
 	},
 	{
-		id: "chocolate-orange",
 		name: "Choco-Orange Power Pellet",
 		tagline: "Chocolate + orange zest. Tiny hands approved.",
 		prepMins: 15,
@@ -229,7 +223,6 @@ export const recipes: Recipe[] = [
 		},
 	},
 	{
-		id: "fruit-stand",
 		name: "Fruit Stand Bites",
 		tagline: "Nuts, dates, dried fruit. Three-ingredient speedrun. Toddler-tested.",
 		prepMins: 20,
@@ -265,7 +258,6 @@ export const recipes: Recipe[] = [
 		},
 	},
 	{
-		id: "coconut-snowball",
 		name: "Coconut Snowball",
 		tagline: "Dates + cashews rolled in snow. Zero snow.",
 		prepMins: 15,
@@ -291,7 +283,6 @@ export const recipes: Recipe[] = [
 		tip: "Dates dry as a boss? Soak them in hot water for 10 minutes, then drain well.",
 	},
 	{
-		id: "brownie-batter",
 		name: "Brownie Batter Bomb",
 		tagline: "Tastes like licking the spatula. Legally.",
 		prepMins: 15,
@@ -315,7 +306,6 @@ export const recipes: Recipe[] = [
 		],
 	},
 	{
-		id: "lemon-bar",
 		name: "Lemon Bar Blaster",
 		tagline: "Bright, zippy, pucker-up power-up.",
 		prepMins: 15,
@@ -339,7 +329,6 @@ export const recipes: Recipe[] = [
 		],
 	},
 	{
-		id: "carrot-cake",
 		name: "Carrot Cake Cart",
 		tagline: "Technically a vegetable. Technically.",
 		prepMins: 20,
@@ -366,7 +355,6 @@ export const recipes: Recipe[] = [
 		],
 	},
 	{
-		id: "matcha-cashew",
 		name: "Matcha Mode",
 		tagline: "Green screen. Calm focus. Suspiciously powerful.",
 		prepMins: 15,
@@ -391,7 +379,6 @@ export const recipes: Recipe[] = [
 		tip: "Heads up: matcha has caffeine. These are actual energy balls.",
 	},
 	{
-		id: "salted-caramel-pretzel",
 		name: "Salty Pretzel Combo",
 		tagline: "Caramel-y dates, crunchy pretzel. Combo multiplier ×2.",
 		prepMins: 15,
@@ -417,7 +404,6 @@ export const recipes: Recipe[] = [
 		tip: "Pretzels have gluten. Swap gluten-free pretzels if you need to.",
 	},
 	{
-		id: "cherry-bomb",
 		name: "Cherry Bomb",
 		tagline: "Dark chocolate + tart cherry. Explodes with flavor (not literally).",
 		prepMins: 15,
@@ -443,6 +429,34 @@ export const recipes: Recipe[] = [
 		],
 	},
 ];
+
+export function slugify(name: string) {
+	return name
+		.normalize("NFKD")
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-|-$/g, "");
+}
+
+export const recipes: Recipe[] = defs.map((r) => ({ ...r, id: slugify(r.name) }));
+
+/**
+ * Old slug -> current slug. When a recipe is renamed, add its old slug here so
+ * existing links redirect and its votes get carried over.
+ */
+export const RENAMED: Record<string, string> = {
+	"white-choc-cranberry": "cran-snow-combo",
+	"almond-joy": "almond-joy-stick",
+	"double-chocolate": "double-choc-boss",
+	"oatmeal-raisin": "oatmeal-raisin-cookie",
+	"chocolate-orange": "choco-orange-power-pellet",
+	"fruit-stand": "fruit-stand-bites",
+	"brownie-batter": "brownie-batter-bomb",
+	"lemon-bar": "lemon-bar-blaster",
+	"carrot-cake": "carrot-cake-cart",
+	"matcha-cashew": "matcha-mode",
+	"salted-caramel-pretzel": "salty-pretzel-combo",
+};
 
 /** Gear plug shown on recipes that need a food processor. */
 export const FOOD_PROCESSOR = {

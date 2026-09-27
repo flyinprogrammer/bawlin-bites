@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { recipes } from "../shared/recipes";
+import { RENAMED, recipes } from "../shared/recipes";
 import { Console } from "./components/Console";
 import { RecipeCard } from "./components/RecipeCard";
 import { PrintSheet, RecipeDetail } from "./components/RecipeDetail";
 import { SecretModal } from "./components/SecretModal";
 import { KONAMI } from "./konami";
+import { setMusic } from "./music";
 import { blip, setSound, soundOn } from "./sfx";
 import { useVotes } from "./useVotes";
 
@@ -15,7 +16,11 @@ const sources = [...new Map(recipes.filter((r) => r.source).map((r) => [r.source
 
 function idFromPath(path: string) {
 	const m = path.match(/^\/r\/([a-z0-9-]+)\/?$/);
-	return m && recipes.some((r) => r.id === m[1]) ? m[1] : null;
+	if (!m) return null;
+	const id = RENAMED[m[1]] ?? m[1];
+	if (!recipes.some((r) => r.id === id)) return null;
+	if (id !== m[1]) history.replaceState(history.state, "", `/r/${id}`); // old link -> new slug
+	return id;
 }
 
 export default function App() {
@@ -53,6 +58,8 @@ export default function App() {
 		const r = recipes.find((x) => x.id === openId);
 		document.title = r ? `${r.name} · Bawlin' Bites` : "Bawlin' Bites";
 	}, [openId]);
+
+	useEffect(() => setMusic(sound, turbo ? "turbo" : "chill"), [sound, turbo]);
 
 	// ↑↑↓↓←→←→BA
 	useEffect(() => {
@@ -171,6 +178,7 @@ export default function App() {
 						setSoundState(!sound);
 					}}
 					sound={sound}
+					track={turbo ? "TURBO MIX" : "CHILL MIX"}
 				/>
 			</header>
 

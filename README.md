@@ -16,8 +16,16 @@ npm run build
 ```
 
 Recipes live in [`src/shared/recipes.ts`](src/shared/recipes.ts). Add an object to the array and
-it shows up as a new cartridge (the pixel-art ball is generated from its `art` colors). The Worker
-uses the same file to validate recipe ids, so votes for removed recipes are ignored.
+it shows up as a new cartridge (the pixel-art ball is generated from its `art` colors). Each
+recipe's URL slug and vote key come from its name (`Salty Pretzel Combo` → `/r/salty-pretzel-combo`).
+**Renaming a recipe?** Add `"old-slug": "new-slug"` to `RENAMED` so old links redirect and its
+votes carry over. The Worker uses the same file to validate recipe ids.
+
+## Sound
+
+Hit **SND** on the handheld for blips plus background music: a mellow lo-fi "Chill Mix", switching
+to a 168 BPM "Turbo Mix" in Konami mode. Both are original loops synthesized live with WebAudio in
+[`src/react-app/music.ts`](src/react-app/music.ts), with no audio files.
 
 ## How votes work
 

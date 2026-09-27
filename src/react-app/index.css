@@ -1310,3 +1310,24 @@ body.quake .app {
 .turbo .pip.on {
 	background: var(--ink);
 }
+.now-playing {
+	display: block;
+	text-align: left;
+	margin-bottom: 6px;
+	animation: none;
+}
+.turbo .now-playing {
+	animation: blink 0.4s steps(2, start) infinite;
+}
+
+/* Paper is always black on white, even in turbo mode. */
+@media print {
+	body,
+	body:has(.turbo) {
+		background: #fff;
+	}
+	.print-sheet,
+	.print-sheet * {
+		color: #000 !important;
+	}
+}

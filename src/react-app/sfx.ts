@@ -8,6 +8,12 @@ try {
 	/* storage unavailable */
 }
 
+/** Shared AudioContext for blips and music (created lazily). */
+export function audioCtx() {
+	ctx ??= new AudioContext();
+	return ctx;
+}
+
 export function soundOn() {
 	return enabled;
 }
@@ -57,7 +63,7 @@ const SONGS: Record<string, [number, number][]> = {
 export function blip(name: keyof typeof SONGS) {
 	if (!enabled) return;
 	try {
-		ctx ??= new AudioContext();
+		const ctx = audioCtx();
 		let t = ctx.currentTime;
 		for (const [freq, dur] of SONGS[name]) {
 			const osc = ctx.createOscillator();

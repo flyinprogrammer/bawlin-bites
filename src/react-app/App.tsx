@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RENAMED, recipes } from "../shared/recipes";
+import { BouncingReset } from "./components/BouncingReset";
 import { Debris, Kaiju } from "./components/Kaiju";
+import { Rampage } from "./components/Rampage";
 import { RecipeCard } from "./components/RecipeCard";
 import { PrintSheet, RecipeDetail } from "./components/RecipeDetail";
 import { SecretModal } from "./components/SecretModal";
@@ -31,6 +33,10 @@ export default function App() {
 	const [sound, setSoundState] = useState(soundOn);
 	const [turbo, setTurbo] = useState(false);
 	const [konamiPos, setKonamiPos] = useState(0);
+	const [smashed, setSmashed] = useState<ReadonlySet<string>>(new Set());
+	const [calm] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+	const loose = turbo && !calm; // the kaiju leaves the hero and rampages down the page
+	const smash = useCallback((id: string) => setSmashed((s) => new Set(s).add(id)), []);
 	const [secretOpen, setSecretOpen] = useState(false);
 	const footRef = useRef<HTMLElement>(null);
 
@@ -70,6 +76,7 @@ export default function App() {
 			if (pos === KONAMI.length) {
 				pos = 0;
 				setTurbo((t) => !t);
+				setSmashed(new Set());
 				setSecretOpen(false);
 				blip("secret");
 			}
@@ -174,6 +181,7 @@ export default function App() {
 				<Kaiju
 					sound={sound}
 					turbo={turbo}
+					loose={loose}
 					onToggle={(on) => {
 						setSound(on);
 						setSoundState(on);
@@ -238,6 +246,7 @@ export default function App() {
 							onOpen={open}
 							onVote={cast}
 							isTop={r.id === topId}
+							smashed={smashed.has(r.id)}
 						/>
 					))}
 				</div>
@@ -261,19 +270,18 @@ export default function App() {
 				</p>
 			</footer>
 
+			{loose && <Rampage onSmash={smash} />}
+
 			{turbo && (
 				<>
 					<Debris />
-					<button
-						type="button"
-						className="reset-lofi"
+					<BouncingReset
 						onClick={() => {
 							setTurbo(false);
+							setSmashed(new Set()); // repairs every busted cartridge
 							blip("close");
 						}}
-					>
-						↺ RESET TO LO-FI
-					</button>
+					/>
 				</>
 			)}
 

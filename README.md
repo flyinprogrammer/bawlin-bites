@@ -27,8 +27,9 @@ Sound is **off by default**; the pixel kaiju bunny in the hero sleeps until some
 turns into a cute, swaying lo-fi bunny ("Chill Mix"). No audio is created until that tap, so the
 browser never blocks or warns about anything. (A returning visitor who left sound on gets a
 screaming bunny asking them to click, since browsers need one click before audio can play.) Konami mode turns it into a rampaging kaiju: the 168 BPM
-"Turbo Mix", a city on fire, and the whole site shaking, cracking and raining debris, until someone
-hits **↺ RESET TO LO-FI**. Tap the bunny to mute (it falls asleep) or unmute. Both are original loops synthesized live with WebAudio in
+"Turbo Mix", the city on fire, and the bunny breaking loose to stomp its way down the page,
+K.O.-ing every recipe cartridge it touches while debris rains down. The **↺ RESET TO LO-FI** button
+bounces around the screen like an idle DVD logo; catch it to repair the site. Tap the bunny to mute (it falls asleep) or unmute. Both are original loops synthesized live with WebAudio in
 [`src/react-app/music.ts`](src/react-app/music.ts), with no audio files.
 
 ## How votes work

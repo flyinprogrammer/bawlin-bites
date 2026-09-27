@@ -959,6 +959,7 @@ body:has(.turbo) {
 }
 
 .app {
+	position: relative; /* the rampaging kaiju is positioned in page coordinates */
 	overflow-x: clip;
 }
 
@@ -995,7 +996,8 @@ body:has(.turbo) {
 		transform: rotate(-2deg);
 	}
 }
-body.quake .app {
+body.quake .hero,
+body.quake .recipes {
 	animation: quake 0.45s steps(2) both;
 }
 @keyframes quake {
@@ -1406,8 +1408,31 @@ body.quake .app {
 	box-shadow: 5px 5px 0 var(--accent);
 	cursor: pointer;
 }
+.reset-lofi.bouncing {
+	/* JS drives translate() from the top-left corner */
+	top: 0;
+	left: 0;
+	right: auto;
+	bottom: auto;
+	will-change: transform;
+	transition: background-color 0.15s;
+}
 .reset-lofi:hover {
-	background: #fff;
+	filter: brightness(1.15);
+}
+.reset-lofi.corner {
+	animation: pulse 0.15s steps(2) infinite alternate;
+}
+.corner-hit {
+	position: absolute;
+	left: 50%;
+	top: -34px;
+	transform: translateX(-50%);
+	font-size: 16px;
+	color: #fff;
+	text-shadow: 3px 3px 0 #ff2e88;
+	white-space: nowrap;
+	pointer-events: none;
 }
 
 /* The site falling apart around the kaiju. */
@@ -1480,4 +1505,86 @@ body.quake .app {
 .debris span:nth-child(5n) { background: var(--accent); }
 @keyframes fall {
 	to { transform: translateY(110vh) rotate(540deg); }
+}
+
+/* ─── the rampage (turbo) ──────────────────────────── */
+
+.rampage {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: min(260px, 48vw);
+	z-index: 30;
+	pointer-events: none;
+	will-change: transform;
+}
+.rampage .kaiju-sprite {
+	animation: stomp 0.357s steps(2, jump-none) infinite;
+	filter: drop-shadow(0 0 14px rgb(255 60 30 / 0.6)) drop-shadow(6px 6px 0 rgb(0 0 0 / 0.45));
+}
+.rampage .px-S {
+	animation: glow 0.357s steps(2) infinite;
+}
+.rampage .kaiju-breath {
+	top: 30%;
+}
+
+.cart.smashed,
+.turbo .cart.smashed {
+	animation: none;
+	transform: rotate(var(--tilt)) translateY(26px) scale(0.94);
+	filter: grayscale(0.75) brightness(0.8);
+	transition: transform 0.35s cubic-bezier(0.3, 1.8, 0.5, 1), filter 0.35s;
+	clip-path: polygon(0 0, 38% 0, 44% 7%, 51% 0, 100% 0, 100% 62%, 94% 70%, 100% 78%, 100% 100%, 0 100%, 0 38%, 7% 31%, 0 24%);
+}
+.cart.smashed::before {
+	/* cracks */
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	pointer-events: none;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 140' preserveAspectRatio='none'%3E%3Cpath d='M44 0 L50 18 L36 34 L56 52 L42 76 L62 96 L48 140 M50 18 L78 26 M56 52 L88 58 M42 76 L12 88 M62 96 L90 118 M36 34 L6 40' fill='none' stroke='%23fff' stroke-width='3' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+	mix-blend-mode: difference;
+}
+.ko {
+	position: absolute;
+	z-index: 3;
+	left: 50%;
+	top: 38%;
+	transform: translate(-50%, -50%) rotate(-14deg);
+	font-family: var(--pixel);
+	font-size: 34px;
+	color: #ff2e88;
+	text-shadow: 3px 3px 0 #000, -2px -2px 0 #fff;
+	border: 4px solid #ff2e88;
+	padding: 6px 10px;
+	background: rgb(0 0 0 / 0.55);
+	pointer-events: none;
+	animation: stamp 0.3s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+@keyframes stamp {
+	from {
+		transform: translate(-50%, -50%) rotate(-14deg) scale(3);
+		opacity: 0;
+	}
+}
+.rubble {
+	position: absolute;
+	z-index: 31;
+	width: var(--s);
+	height: var(--s);
+	background: #8a8578;
+	border: 2px solid #000;
+	pointer-events: none;
+	animation: rubble 0.9s cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
+}
+.rubble:nth-child(3n) {
+	background: #ff7a1a;
+}
+@keyframes rubble {
+	to {
+		transform: translate(var(--dx), var(--dy)) rotate(400deg);
+		opacity: 0;
+	}
 }

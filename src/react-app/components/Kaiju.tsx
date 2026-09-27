@@ -9,7 +9,7 @@ const W = 56;
 const H = 50;
 
 type Key = "B" | "L" | "P" | "S" | "W" | "K" | "C" | "D" | "Y" | "R" | "F";
-export type Mood = "asleep" | "scream" | "cute" | "rage";
+export type Mood = "asleep" | "scream" | "cute" | "rage" | "gone";
 type Grid = (Key | null)[][];
 
 function ellipse(g: Grid, cx: number, cy: number, rx: number, ry: number, k: Key) {
@@ -25,8 +25,23 @@ function spike(g: Grid, bx: number, by: number, size: number, k: Key) {
 	for (let i = 0; i < size; i++) rect(g, bx - i, by - i, bx - i + (size - i) - 1, by - i, k);
 }
 
-function draw(mood: Mood): Grid {
+function draw(mood: Mood, withCity = true): Grid {
 	const g: Grid = Array.from({ length: H }, () => Array<Key | null>(W).fill(null));
+	if (mood !== "gone") drawBunny(g, mood);
+
+	// Auto-outline: every empty pixel touching the monster becomes ink.
+	const out = g.map((row) => row.slice());
+	for (let y = 0; y < H; y++)
+		for (let x = 0; x < W; x++) {
+			if (g[y][x]) continue;
+			const n = [g[y - 1]?.[x], g[y + 1]?.[x], g[y][x - 1], g[y][x + 1]];
+			if (n.some((v) => v && v !== "K")) out[y][x] = "K";
+		}
+	if (withCity) drawCity(out, mood);
+	return out;
+}
+
+function drawBunny(g: Grid, mood: Mood) {
 	// Tail: a chain of shrinking blobs sweeping back to the ground.
 	[
 		[15, 38, 4.5],
@@ -86,16 +101,9 @@ function draw(mood: Mood): Grid {
 		rect(g, 37, 21, 41, 21, "K");
 	}
 	g[19][31] = "P"; // blush
+}
 
-	// Auto-outline: every empty pixel touching the monster becomes ink.
-	const out = g.map((row) => row.slice());
-	for (let y = 0; y < H; y++)
-		for (let x = 0; x < W; x++) {
-			if (g[y][x]) continue;
-			const n = [g[y - 1]?.[x], g[y + 1]?.[x], g[y][x - 1], g[y][x + 1]];
-			if (n.some((v) => v && v !== "K")) out[y][x] = "K";
-		}
-
+function drawCity(out: Grid, mood: Mood) {
 	// A tiny city getting stomped, drawn after outlining so it stays crisp.
 	const city: [number, number, number][] = [
 		[36, 41, 5],
@@ -103,9 +111,10 @@ function draw(mood: Mood): Grid {
 		[47, 43, 6],
 		[0, 47, 3],
 	];
-	const rage = mood === "rage";
+	const rage = mood === "rage" || mood === "gone";
 	for (const [x, tall, w] of city) {
-		const top = rage && x === 42 ? tall + 5 : tall; // the tall one got stomped
+		// In rage the tall one got stomped; once the kaiju has left, everything is rubble.
+		const top = mood === "gone" ? Math.max(tall, H - 5) : rage && x === 42 ? tall + 5 : tall;
 		rect(out, x, top, x + w, H - 1, "K");
 		rect(out, x + 1, top + 1, x + w - 1, H - 1, "C");
 		for (let wy = top + 2; wy < H - 1; wy += 3)
@@ -119,13 +128,23 @@ function draw(mood: Mood): Grid {
 		}
 	}
 	rect(out, 0, H - 1, W - 1, H - 1, "K");
-	return out;
+	if (mood === "gone") {
+		// Giant footprints leading off-stage.
+		for (const fx of [8, 20, 32]) rect(out, fx, H - 2, fx + 4, H - 2, "K");
+	}
 }
 
-const SPRITES: Record<Mood, Grid> = { asleep: draw("asleep"), scream: draw("scream"), cute: draw("cute"), rage: draw("rage") };
+const SPRITES: Record<Mood, Grid> = {
+	asleep: draw("asleep"),
+	scream: draw("scream"),
+	cute: draw("cute"),
+	rage: draw("rage"),
+	gone: draw("gone"),
+};
+const LOOSE = draw("rage", false); // the roaming kaiju doesn't carry its city around
 
-function Sprite({ mood }: { mood: Mood }) {
-	const grid = SPRITES[mood];
+function Sprite({ mood, loose = false }: { mood: Mood; loose?: boolean }) {
+	const grid = loose ? LOOSE : SPRITES[mood];
 	const rects: React.ReactElement[] = [];
 	grid.forEach((row, y) => {
 		let x = 0;
@@ -144,6 +163,7 @@ function Sprite({ mood }: { mood: Mood }) {
 	);
 }
 const MemoSprite = memo(Sprite);
+export const KaijuSprite = MemoSprite;
 
 function useAudioRunning() {
 	return useSyncExternalStore(onAudioStateChange, audioRunning, () => false);
@@ -152,15 +172,18 @@ function useAudioRunning() {
 export function Kaiju({
 	sound,
 	turbo,
+	loose,
 	onToggle,
 }: {
 	sound: boolean;
 	turbo: boolean;
+	/** The kaiju is off rampaging down the page, so the hero shows the wreckage. */
+	loose: boolean;
 	onToggle: (on: boolean) => void;
 }) {
 	const running = useAudioRunning();
 	const locked = sound && !running; // sound is on but the browser hasn't let audio start yet
-	const mood: Mood = locked ? "scream" : turbo ? "rage" : sound ? "cute" : "asleep";
+	const mood: Mood = locked ? "scream" : turbo ? (loose ? "gone" : "rage") : sound ? "cute" : "asleep";
 	const unlock = () => void audioCtx().resume();
 
 	const bubble = {
@@ -168,6 +191,7 @@ export function Kaiju({
 		cute: "♪ just vibin' · CHILL MIX",
 		rage: sound ? "RAAAWR!!! ♪ TURBO MIX" : "RAAAWR!!! (muted, still mad)",
 		asleep: "zzz… TAP ME FOR TUNES ♪",
+		gone: "⚠ IT GOT LOOSE!! ⚠ SCROLL DOWN",
 	}[mood];
 
 	return (

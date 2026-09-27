@@ -12,6 +12,7 @@ export function RecipeCard({
 	onOpen,
 	onVote,
 	isTop,
+	smashed = false,
 }: {
 	recipe: Recipe;
 	index: number;
@@ -20,9 +21,22 @@ export function RecipeCard({
 	onOpen: (id: string) => void;
 	onVote: (id: string, v: Vote) => Promise<number>;
 	isTop: boolean;
+	/** Busted up by the rampaging kaiju (turbo mode). */
+	smashed?: boolean;
 }) {
+	// Deterministic "how badly it got hit" per card.
+	const tilt = ((index * 37) % 24) - 12;
 	return (
-		<article className="cart" style={{ "--label": recipe.art.body, "--label-shade": recipe.art.shade } as React.CSSProperties}>
+		<article
+			className={`cart${smashed ? " smashed" : ""}`}
+			data-id={recipe.id}
+			style={{ "--label": recipe.art.body, "--label-shade": recipe.art.shade, "--tilt": `${tilt || 9}deg` } as React.CSSProperties}
+		>
+			{smashed && (
+				<span className="ko" aria-hidden="true">
+					K.O.
+				</span>
+			)}
 			<button type="button" className="cart-open" onClick={() => onOpen(recipe.id)} aria-label={`Open ${recipe.name}`}>
 				<div className="cart-grip" aria-hidden="true">
 					<span />

@@ -1,0 +1,24 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "bawlin-bites",
+	"account_id": "2edf7a62c0e1f0a2704179d80bb681b8",
+	"main": "./src/worker/index.ts",
+	"compatibility_date": "2026-09-01",
+	"compatibility_flags": ["nodejs_compat"],
+	"observability": { "enabled": true },
+	"upload_source_maps": true,
+	"assets": {
+		"directory": "./dist/client",
+		"not_found_handling": "single-page-application",
+		"run_worker_first": ["/api/*"]
+	},
+	"routes": [{ "pattern": "bawls.scherger.cloud", "custom_domain": true }],
+	"d1_databases": [
+		{
+			// No database_id on purpose: `wrangler deploy` finds the database by
+			// name, or creates it on the first deploy.
+			"binding": "DB",
+			"database_name": "bawlin-bites"
+		}
+	]
+}

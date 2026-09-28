@@ -72,7 +72,7 @@ Recipes the family has actually made get a green **SCHERGER TESTED** seal (store
 2. On the site, click **🔑 Scherger HQ** in the footer, paste the token, open a recipe, and hit
    **✓ MARK TESTED & APPROVED** (optionally with a note).
 
-Locally, `.dev.vars` holds `ADMIN_TOKEN=local-dev-token`.
+Locally, `cp .dev.vars.example .dev.vars` gives you `ADMIN_TOKEN=local-dev-token`.
 
 ## How votes work
 

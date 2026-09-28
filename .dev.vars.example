@@ -1,0 +1,3 @@
+# Copy to .dev.vars for local `npm run dev` (that file is gitignored).
+# Production reads ADMIN_TOKEN from GitHub → Settings → Environments → production.
+ADMIN_TOKEN=local-dev-token

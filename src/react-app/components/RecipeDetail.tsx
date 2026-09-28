@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
+import { hasText, sanitizeNotes } from "../notesHtml";
 import { FOOD_PROCESSOR, needsFoodProcessor, type Recipe } from "../../shared/recipes";
-import { NOTE_MAX_CHARS, NOTES_MAX_LINES } from "../../shared/notes";
 import { BATCHES, scaledIngredient, scaledMakes } from "../scaled";
 import type { Approval } from "../useApprovals";
 import type { Tally, Vote } from "../useVotes";
@@ -44,9 +44,9 @@ export function RecipeDetail({
 	approval?: Approval;
 	isAdmin: boolean;
 	onSetApproval: (approved: boolean) => Promise<boolean>;
-	/** The Scherger notes to show (edited ones from D1, or the recipe's built-in ones). */
-	notes: string[];
-	onSaveNotes: (text: string) => Promise<boolean>;
+	/** The Scherger notes to show, as HTML (edited ones from D1, or the recipe's built-in ones). */
+	notes: string;
+	onSaveNotes: (html: string) => Promise<boolean>;
 }) {
 	const ref = useRef<HTMLDialogElement>(null);
 
@@ -202,16 +202,7 @@ export function RecipeDetail({
 								<b>PRO TIP:</b> {recipe.tip}
 							</p>
 						)}
-						{notes.length > 0 && (
-							<aside className="house-notes">
-								<b>SCHERGER NOTES</b>
-								<ul>
-									{notes.map((n, i) => (
-										<li key={i}>{n}</li>
-									))}
-								</ul>
-							</aside>
-						)}
+						<HouseNotes html={notes} />
 						{needsFoodProcessor(recipe) && (
 							<aside className="gear">
 								<span className="gear-icon" aria-hidden="true">⚙</span>
@@ -263,7 +254,7 @@ export function PrintSheet({
 	batch: number;
 	grams: boolean;
 	approval?: Approval;
-	notes: string[];
+	notes: string;
 }) {
 	const batchName = BATCHES.find((b) => b.times === batch)?.name;
 	return (
@@ -308,18 +299,7 @@ export function PrintSheet({
 							<b>Tip:</b> {recipe.tip}
 						</p>
 					)}
-					{notes.length > 0 && (
-						<>
-							<p>
-								<b>Scherger notes:</b>
-							</p>
-							<ul className="print-notes">
-								{notes.map((n, i) => (
-									<li key={i}>{n}</li>
-								))}
-							</ul>
-						</>
-					)}
+					<HouseNotes html={notes} print />
 				</section>
 			</div>
 			<footer>
@@ -348,6 +328,26 @@ function ApprovalSeal({ approval }: { approval: Approval }) {
 	);
 }
 
+const NotesEditor = lazy(() => import("./NotesEditor"));
+
+/** The green Scherger notes box (or its printed version); hidden when there's nothing to say. */
+function HouseNotes({ html, print = false }: { html: string; print?: boolean }) {
+	const clean = sanitizeNotes(html);
+	if (!hasText(clean)) return null;
+	const body = <div className="notes-body" dangerouslySetInnerHTML={{ __html: clean }} />;
+	return print ? (
+		<div className="print-notes">
+			<b>Scherger notes:</b>
+			{body}
+		</div>
+	) : (
+		<aside className="house-notes">
+			<b>SCHERGER NOTES</b>
+			{body}
+		</aside>
+	);
+}
+
 /** Only rendered for someone logged in with the admin token. */
 function AdminPanel({
 	approval,
@@ -356,51 +356,26 @@ function AdminPanel({
 	onSaveNotes,
 }: {
 	approval?: Approval;
-	notes: string[];
+	notes: string;
 	onSetApproval: (approved: boolean) => Promise<boolean>;
-	onSaveNotes: (text: string) => Promise<boolean>;
+	onSaveNotes: (html: string) => Promise<boolean>;
 }) {
-	const [text, setText] = useState(notes.join("\n"));
-	const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
-	const dirty = text.trim() !== notes.join("\n").trim();
-	const run = async (action: () => Promise<boolean>, doneState: "idle" | "saved" = "idle") => {
-		setStatus("saving");
-		setStatus((await action()) ? doneState : "error");
-	};
 	return (
 		<div className="admin-approval">
-			<label className="admin-notes">
-				<span className="admin-tag">🔑 SCHERGER NOTES · one per line</span>
-				<textarea
-					rows={Math.min(8, Math.max(3, text.split("\n").length + 1))}
-					maxLength={NOTES_MAX_LINES * (NOTE_MAX_CHARS + 1)}
-					placeholder={"We roll half in coconut.\nThese are a family favorite."}
-					value={text}
-					onChange={(e) => {
-						setText(e.target.value);
-						setStatus("idle");
-					}}
-				/>
-			</label>
+			<Suspense fallback={<span className="admin-tag">Loading editor…</span>}>
+				<NotesEditor initialHtml={sanitizeNotes(notes)} onSave={onSaveNotes} />
+			</Suspense>
 			<div className="admin-buttons">
-				<button type="button" className="approve-btn" disabled={status === "saving" || !dirty} onClick={() => run(() => onSaveNotes(text), "saved")}>
-					{status === "saved" && !dirty ? "✓ NOTES SAVED" : "SAVE NOTES"}
-				</button>
 				{approval ? (
-					<button type="button" className="unapprove-btn" disabled={status === "saving"} onClick={() => run(() => onSetApproval(false))}>
+					<button type="button" className="unapprove-btn" onClick={() => onSetApproval(false)}>
 						REMOVE APPROVAL
 					</button>
 				) : (
-					<button type="button" className="approve-btn" disabled={status === "saving"} onClick={() => run(() => onSetApproval(true))}>
+					<button type="button" className="approve-btn" onClick={() => onSetApproval(true)}>
 						✓ MARK TESTED &amp; APPROVED
 					</button>
 				)}
 			</div>
-			{status === "error" && (
-				<span className="admin-error">
-					Couldn't save. Max {NOTES_MAX_LINES} lines of {NOTE_MAX_CHARS} characters, and your token must still be valid.
-				</span>
-			)}
 		</div>
 	);
 }

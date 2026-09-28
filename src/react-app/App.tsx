@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { linesToHtml } from "../shared/notes";
 import { RENAMED, recipes } from "../shared/recipes";
 import { BouncingReset } from "./components/BouncingReset";
 import { Debris, Kaiju } from "./components/Kaiju";
@@ -36,7 +37,7 @@ export default function App() {
 	const { approvals, notes, isAdmin, login, logout, setApproval, saveNotes } = useApprovals();
 	// Edited notes win; otherwise the recipe's built-in notes plus any note left on its approval.
 	const notesFor = (r: (typeof recipes)[number]) =>
-		notes[r.id] ?? [...(r.houseNotes ?? []), ...(approvals[r.id]?.note ? [approvals[r.id].note!] : [])];
+		notes[r.id] ?? linesToHtml([...(r.houseNotes ?? []), ...(approvals[r.id]?.note ? [approvals[r.id].note!] : [])]);
 	const [loginOpen, setLoginOpen] = useState(false);
 	// Batch size per recipe (1×/2×/3×) and the grams toggle, shared by the dialog and the printout.
 	const [batches, setBatches] = useState<Record<string, number>>({});

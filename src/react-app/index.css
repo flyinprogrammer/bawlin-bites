@@ -2046,22 +2046,6 @@ body.quake .recipes {
 	padding-left: 18px;
 }
 
-.admin-notes {
-	flex: 1 1 100%;
-	display: grid;
-	gap: 6px;
-}
-.admin-notes textarea {
-	font: inherit;
-	font-size: 15px;
-	line-height: 1.5;
-	padding: 8px 10px;
-	border: 2px solid #221e2e;
-	border-radius: 8px;
-	background: #fff;
-	color: #221e2e;
-	resize: vertical;
-}
 .admin-buttons {
 	display: flex;
 	flex-wrap: wrap;
@@ -2070,6 +2054,91 @@ body.quake .recipes {
 @media print {
 	.print-sheet .print-notes {
 		margin: 0 0 8pt;
-		padding-left: 16pt;
 	}
+	.print-sheet .print-notes a {
+		color: #000 !important;
+	}
+}
+
+/* ─── rich-text Scherger notes ─────────────────────── */
+
+.notes-body p {
+	margin: 0 0 6px;
+}
+.notes-body p:last-child {
+	margin-bottom: 0;
+}
+.notes-body ul,
+.notes-body ol {
+	margin: 6px 0;
+	padding-left: 20px;
+}
+.notes-body li p {
+	margin: 0;
+}
+.house-notes .notes-body {
+	margin-top: 8px;
+}
+.house-notes a {
+	color: inherit;
+	font-weight: 700;
+}
+
+.notes-editor {
+	flex: 1 1 100%;
+	display: grid;
+	gap: 8px;
+}
+.notes-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+.notes-toolbar button {
+	font-family: var(--sans);
+	font-weight: 700;
+	font-size: 14px;
+	min-width: 36px;
+	padding: 5px 10px;
+	border: 2px solid #221e2e;
+	border-radius: 8px;
+	background: #fff;
+	color: #221e2e;
+	cursor: pointer;
+}
+.notes-toolbar button:nth-child(2) {
+	font-style: italic;
+}
+.notes-toolbar button.on {
+	background: #221e2e;
+	color: #fff;
+}
+.notes-editor-body {
+	min-height: 96px;
+	padding: 10px 12px;
+	border: 2px solid #221e2e;
+	border-radius: 8px;
+	background: #fff;
+	color: #221e2e;
+	font-size: 15px;
+	line-height: 1.5;
+	outline: none;
+}
+.notes-editor-body:focus {
+	box-shadow: 0 0 0 3px var(--accent);
+}
+.notes-editor-body p {
+	margin: 0 0 6px;
+}
+.notes-editor-body ul,
+.notes-editor-body ol {
+	margin: 4px 0;
+	padding-left: 22px;
+}
+.notes-editor-body li p {
+	margin: 0;
+}
+.notes-editor-body a {
+	color: #1c6e46;
+	font-weight: 700;
 }

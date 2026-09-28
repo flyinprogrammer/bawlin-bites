@@ -1,7 +1,6 @@
 import Fraction from "fraction.js";
 import { describe, expect, it } from "vitest";
 import { CUP_MEASURES, formatVolume, gramsFor, parseQty, planVolume, scaleMakes, scaleQty, TSP_PER } from "./quantity";
-import { NOTE_MAX_CHARS, NOTES_MAX_LINES, parseNotes } from "./notes";
 import { SEEDS } from "./seeds";
 import { WEIGHTS } from "./weights";
 import { RENAMED, recipes } from "./recipes";
@@ -319,23 +318,5 @@ describe("Mango Bliss Bonus", () => {
 	it("drops the mango house note", () => {
 		expect(mango.houseNotes).not.toContain("We use freeze-dried mango.");
 		expect(mango.houseNotes).toHaveLength(2);
-	});
-});
-
-describe("parseNotes", () => {
-	it("makes one bullet per line, trimming blanks and pasted bullet markers", () => {
-		expect(parseNotes("  These are a favorite.\n\n- We use maple syrup.\r\n• Roll half in coconut.  \n")).toEqual([
-			"These are a favorite.",
-			"We use maple syrup.",
-			"Roll half in coconut.",
-		]);
-	});
-	it("treats an empty box as no notes", () => {
-		expect(parseNotes(" \n \n")).toEqual([]);
-	});
-	it("rejects too many or too-long lines", () => {
-		expect(parseNotes(Array.from({ length: NOTES_MAX_LINES + 1 }, (_, i) => `note ${i}`).join("\n"))).toBeNull();
-		expect(parseNotes("x".repeat(NOTE_MAX_CHARS + 1))).toBeNull();
-		expect(parseNotes("x".repeat(NOTE_MAX_CHARS))).toEqual(["x".repeat(NOTE_MAX_CHARS)]);
 	});
 });

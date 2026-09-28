@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { RENAMED, recipeIds } from "../shared/recipes";
-import { parseNotes } from "../shared/notes";
+import { NOTES_MAX_HTML, storedNotesToHtml } from "../shared/notes";
 import { SEEDS } from "../shared/seeds";
 
 type Tally = { up: number; down: number };
@@ -30,7 +30,8 @@ function ensureSchema(db: D1Database) {
 					note TEXT
 				)`,
 			),
-			// Editable "Scherger notes" (JSON array of lines); overrides the notes in recipes.ts.
+			// Editable "Scherger notes" (JSON {"html": ...}; older rows are an array of lines).
+			// Overrides the notes in recipes.ts. Sanitized in the browser before display.
 			db.prepare(
 				`CREATE TABLE IF NOT EXISTS house_notes (
 					recipe_id TEXT PRIMARY KEY,
@@ -202,8 +203,8 @@ app.put("/api/approvals/:recipeId", async (c) => {
 app.get("/api/notes", async (c) => {
 	await ensureSchema(c.env.DB);
 	const { results } = await c.env.DB.prepare("SELECT recipe_id, notes FROM house_notes").all<{ recipe_id: string; notes: string }>();
-	const notes: Record<string, string[]> = {};
-	for (const row of results) if (recipeIds.has(row.recipe_id)) notes[row.recipe_id] = JSON.parse(row.notes);
+	const notes: Record<string, string> = {};
+	for (const row of results) if (recipeIds.has(row.recipe_id)) notes[row.recipe_id] = storedNotesToHtml(row.notes);
 	return c.json({ notes });
 });
 
@@ -212,19 +213,19 @@ app.put("/api/notes/:recipeId", async (c) => {
 	if (!(await isAdmin(c))) return c.json({ error: "bad token" }, 401);
 	const recipeId = c.req.param("recipeId");
 	if (!recipeIds.has(recipeId)) return c.json({ error: "unknown recipe" }, 404);
-	const body = await c.req.json<{ notes?: unknown }>().catch(() => ({}) as Record<string, unknown>);
-	if (typeof body.notes !== "string") return c.json({ error: "notes must be a string" }, 400);
-	const lines = parseNotes(body.notes);
-	if (!lines) return c.json({ error: "too many or too-long notes" }, 400);
+	const body = await c.req.json<{ html?: unknown }>().catch(() => ({}) as Record<string, unknown>);
+	if (typeof body.html !== "string") return c.json({ error: "html must be a string" }, 400);
+	if (body.html.length > NOTES_MAX_HTML) return c.json({ error: "notes are too long" }, 400);
+	const html = body.html;
 
 	await ensureSchema(c.env.DB);
 	await c.env.DB.prepare(
 		`INSERT INTO house_notes (recipe_id, notes, updated_at) VALUES (?, ?, ?)
 		 ON CONFLICT (recipe_id) DO UPDATE SET notes = excluded.notes, updated_at = excluded.updated_at`,
 	)
-		.bind(recipeId, JSON.stringify(lines), Date.now())
+		.bind(recipeId, JSON.stringify({ html }), Date.now())
 		.run();
-	return c.json({ notes: lines });
+	return c.json({ html });
 });
 
 app.all("/api/*", (c) => c.json({ error: "not found" }, 404));

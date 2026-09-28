@@ -163,7 +163,7 @@ export function RecipeDetail({
 													className={`grams${line.grams === null ? " none" : ""}`}
 													title={line.gramsFromCard ? "Weight from the recipe card" : undefined}
 												>
-													{line.grams === null ? line.noWeight : `≈${line.grams} g`}
+													{line.grams === null ? line.noWeight : `${line.gramsExact ? "" : "≈"}${line.grams} g`}
 												</span>
 											)}
 										</label>
@@ -280,7 +280,7 @@ export function PrintSheet({
 								<li key={i} className={checked.has(i) ? "got" : ""}>
 									<span className="box">{checked.has(i) ? "✓" : ""}</span> <b>{line.qty}</b> {line.item}
 									{ing.note && <em> ({ing.note})</em>}
-									{grams && line.grams !== null && <span className="print-grams"> ≈{line.grams} g</span>}
+									{grams && line.grams !== null && !line.gramsExact && <span className="print-grams"> ≈{line.grams} g</span>}
 								</li>
 							);
 						})}

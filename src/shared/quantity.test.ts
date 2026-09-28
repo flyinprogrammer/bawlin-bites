@@ -41,9 +41,10 @@ describe("parseQty", () => {
 		expect(parseQty("pinch")).toMatchObject({ kind: "pinch" });
 		expect(parseQty("optional")).toEqual({ kind: "text", text: "optional" });
 		expect(parseQty("as needed")).toEqual({ kind: "text", text: "as needed" });
+		expect(parseQty("50 g")).toEqual({ kind: "weight", g: 50 });
 	});
 
-	it.each(["a cup", "1 cupz", "1/2 cup", "0.5 cup", "", "1 oz", "2 + 1", "1 tbsp +"])("rejects %j", (bad) => {
+	it.each(["a cup", "1 cupz", "1/2 cup", "0.5 cup", "", "1 oz", "2 + 1", "1 tbsp +", "0 g", "½ g", "50g", "1.5 g", "50 g + 1 tbsp"])("rejects %j", (bad) => {
 		expect(() => parseQty(bad)).toThrow();
 	});
 });
@@ -80,6 +81,8 @@ describe("scaleQty: known answers", () => {
 		// counts and pinches
 		["1", 3, "3"],
 		["pinch", 2, "2 pinches"],
+		["50 g", 2, "100 g"],
+		["50 g", 3, "150 g"],
 		["optional", 3, "optional"],
 	])("%s × %i = %s", (qty, times, expected) => {
 		expect(scaleQty(qty, times)).toBe(expected);
@@ -153,6 +156,7 @@ describe("every recipe", () => {
 						if (q.kind === "count" || q.kind === "pinch") {
 							expect((back as { n: Fraction }).n.equals(q.n.mul(times))).toBe(true);
 						}
+						if (q.kind === "weight") expect(back, `${ing.qty} × ${times} → ${scaled}`).toEqual({ kind: "weight", g: q.g * times });
 					}
 					if (q.kind === "count") expect(ing.plural, `${ing.item} needs a plural`).toBeTruthy();
 				}
@@ -206,6 +210,7 @@ describe("grams", () => {
 		expect(gramsFor("1", 2, 256)).toBeNull();
 		expect(gramsFor("pinch", 3, 256)).toBeNull();
 		expect(gramsFor("1 cup", 1, undefined)).toBeNull();
+		expect(gramsFor("50 g", 3, undefined)).toBe(150); // already in grams: exact, no density needed
 	});
 
 	it("only lists weights backed by two sources that agree within 5%", () => {
@@ -301,5 +306,17 @@ describe("worker seeds", () => {
 		const live = new Set(recipes.map((r) => r.id));
 		for (const seed of SEEDS) for (const id of seed.approve) expect(live.has(id), `${seed.name}: ${id}`).toBe(true);
 		expect(new Set(SEEDS.map((s) => s.name)).size).toBe(SEEDS.length);
+	});
+});
+
+describe("Mango Bliss Bonus", () => {
+	const mango = recipes.find((r) => r.id === "mango-bliss-bonus")!;
+	it("uses 50 g of freeze-dried mango, scaled by weight", () => {
+		const fruit = mango.ingredients.find((i) => i.item === "freeze-dried mango")!;
+		expect([1, 2, 3].map((t) => scaleQty(fruit.qty, t))).toEqual(["50 g", "100 g", "150 g"]);
+	});
+	it("drops the mango house note", () => {
+		expect(mango.houseNotes).not.toContain("We use freeze-dried mango.");
+		expect(mango.houseNotes).toHaveLength(2);
 	});
 });

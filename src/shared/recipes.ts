@@ -6,7 +6,7 @@ import type { WeightKey } from "./weights";
 export type Stat = 1 | 2 | 3 | 4 | 5;
 
 export interface Ingredient {
-	/** Parsed by src/shared/quantity.ts: "1¼ cups", "2 tbsp", "½ tsp", "1", "pinch", "optional". */
+	/** Parsed by src/shared/quantity.ts: "1¼ cups", "2 tbsp", "½ tsp", "50 g", "1", "pinch", "optional". */
 	qty: string;
 	item: string;
 	/** Plural item name for counted ingredients ("lemons") when batch-scaled past 1. */
@@ -525,7 +525,7 @@ const defs: Omit<Recipe, "id">[] = [
 			{ qty: "1 tsp", item: "vanilla" },
 			{ qty: "¼ cup", item: "rolled oats" },
 			{ qty: "2 tbsp", item: "unsweetened shredded coconut" },
-			{ qty: "1 cup", item: "freeze-dried mango", note: "or freeze-dried strawberries, blueberries, or raspberries" },
+			{ qty: "50 g", item: "freeze-dried mango", note: "or freeze-dried strawberries, blueberries, or raspberries" },
 			{ qty: "optional", item: "extra shredded coconut", note: "for rolling" },
 		],
 		steps: [
@@ -537,7 +537,6 @@ const defs: Omit<Recipe, "id">[] = [
 		],
 		tip: "Dough getting sticky? Rinse your hands, or chill the bowl for a few minutes.",
 		houseNotes: [
-			"We use freeze-dried mango.",
 			"Soaking the cashews isn't that bad. Do it.",
 			"We usually roll half in coconut for texture.",
 		],

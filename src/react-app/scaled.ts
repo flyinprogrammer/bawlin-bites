@@ -13,7 +13,7 @@ export function scaledIngredient(ing: Ingredient, times: number) {
 	const q = parseQty(ing.qty);
 	const many = q.kind === "count" && !q.n.mul(times).equals(1);
 	// A recipe card's own gram weight wins; otherwise a verified density. Same 1 tbsp floor either way.
-	const bigEnough = q.kind === "volume" && q.tsp.mul(times).compare(TSP_PER.tbsp) >= 0;
+	const bigEnough = q.kind === "volume" && q.tsp.mul(times).compare(TSP_PER.tbsp) >= 0; // for card grams
 	const grams =
 		ing.cardGrams !== undefined
 			? bigEnough
@@ -28,6 +28,8 @@ export function scaledIngredient(ing: Ingredient, times: number) {
 		item: many && ing.plural ? ing.plural : ing.item,
 		grams,
 		gramsFromCard: grams !== null && ing.cardGrams !== undefined,
+		/** The recipe itself is in grams, so the weight is exact, not an estimate. */
+		gramsExact: q.kind === "weight",
 		noWeight,
 	};
 }

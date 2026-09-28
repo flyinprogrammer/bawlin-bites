@@ -49,6 +49,7 @@ const TO_VULGAR: Record<string, string> = Object.fromEntries(Object.entries(VULG
 export type Qty =
 	| { kind: "volume"; tsp: Fraction }
 	| { kind: "count"; n: Fraction }
+	| { kind: "weight"; g: number } // whole grams, for things the family weighs
 	| { kind: "pinch"; n: Fraction }
 	| { kind: "text"; text: string }; // "optional" / "as needed": never scaled
 
@@ -71,6 +72,8 @@ function parseNumber(whole: string | undefined, vulgar: string | undefined): Fra
 export function parseQty(input: string): Qty {
 	const s = input.trim();
 	if (s === "optional" || s === "as needed") return { kind: "text", text: s };
+	const grams = s.match(/^([1-9]\d*) g$/);
+	if (grams) return { kind: "weight", g: Number(grams[1]) };
 	const pinch = s.match(/^(\d+)?\s*pinch(?:es)?$/);
 	if (pinch) return { kind: "pinch", n: new Fraction(pinch[1] ? Number(pinch[1]) : 1) };
 
@@ -173,6 +176,8 @@ export function scaleQty(qty: string, times: number): string {
 		}
 		case "count":
 			return formatNumber(q.n.mul(times));
+		case "weight":
+			return `${q.g * times} g`;
 		case "volume":
 			return formatVolume(q.tsp.mul(times));
 	}
@@ -199,9 +204,9 @@ const MIN_WEIGH_TSP = TSP_PER.tbsp;
  * we shouldn't give a weight (no verified density, not a volume, or under 1 tbsp).
  */
 export function gramsFor(qty: string, times: number, gPerCup: number | undefined): number | null {
-	if (!gPerCup) return null;
 	const q = parseQty(qty);
-	if (q.kind !== "volume") return null;
+	if (q.kind === "weight") return q.g * times; // already weighed: exact, no density needed
+	if (!gPerCup || q.kind !== "volume") return null;
 	const total = q.tsp.mul(times);
 	if (total.compare(MIN_WEIGH_TSP) < 0) return null;
 	return Math.round(total.div(TSP_PER.cup).mul(gPerCup).valueOf());

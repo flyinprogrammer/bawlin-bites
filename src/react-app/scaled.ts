@@ -22,7 +22,7 @@ export function scaledIngredient(ing: Ingredient, times: number) {
 			: gramsFor(ing.qty, times, ing.weigh ? WEIGHTS[ing.weigh].gPerCup : undefined);
 	// Why there's no weight, in kitchen terms.
 	const noWeight =
-		grams !== null ? null : q.kind !== "volume" ? "—" : q.tsp.mul(times).compare(TSP_PER.tbsp) < 0 ? "use spoons" : "use cups";
+		grams !== null ? null : q.kind !== "volume" ? "—" : q.tsp.mul(times).compare(TSP_PER.cup / 4) < 0 ? "use spoons" : "use cups";
 	return {
 		qty: scaleQty(ing.qty, times),
 		item: many && ing.plural ? ing.plural : ing.item,

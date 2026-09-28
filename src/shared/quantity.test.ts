@@ -2,7 +2,7 @@ import Fraction from "fraction.js";
 import { describe, expect, it } from "vitest";
 import { CUP_MEASURES, formatVolume, gramsFor, parseQty, planVolume, scaleMakes, scaleQty, TSP_PER } from "./quantity";
 import { WEIGHTS } from "./weights";
-import { recipes } from "./recipes";
+import { RENAMED, recipes } from "./recipes";
 
 const tsp = (qty: string) => {
 	const q = parseQty(qty);
@@ -282,5 +282,15 @@ describe("Carrot Cake Cart (from the family recipe card)", () => {
 		[3, ["1½ cups", "1½ cups", "1½ cups", "1 cup", "1 tbsp", "1 tbsp", "1 tbsp", "1 tbsp", "as needed", "optional"]],
 	])("%i× batch", (times, expected) => {
 		expect(carrot.ingredients.map((i) => scaleQty(i.qty, times))).toEqual(expected);
+	});
+});
+
+describe("RENAMED", () => {
+	it("only points at recipes that exist, and never at another old slug", () => {
+		const ids = new Set(recipes.map((r) => r.id));
+		for (const [from, to] of Object.entries(RENAMED)) {
+			expect(ids.has(to), `${from} → ${to}`).toBe(true);
+			expect(ids.has(from), `${from} is still a live slug`).toBe(false);
+		}
 	});
 });

@@ -1,6 +1,7 @@
 import Fraction from "fraction.js";
 import { describe, expect, it } from "vitest";
 import { CUP_MEASURES, formatVolume, gramsFor, parseQty, planVolume, scaleMakes, scaleQty, TSP_PER } from "./quantity";
+import { SEEDS } from "./seeds";
 import { WEIGHTS } from "./weights";
 import { RENAMED, recipes } from "./recipes";
 
@@ -292,5 +293,13 @@ describe("RENAMED", () => {
 			expect(ids.has(to), `${from} → ${to}`).toBe(true);
 			expect(ids.has(from), `${from} is still a live slug`).toBe(false);
 		}
+	});
+});
+
+describe("worker seeds", () => {
+	it("only approve recipes that exist, and have unique names", () => {
+		const live = new Set(recipes.map((r) => r.id));
+		for (const seed of SEEDS) for (const id of seed.approve) expect(live.has(id), `${seed.name}: ${id}`).toBe(true);
+		expect(new Set(SEEDS.map((s) => s.name)).size).toBe(SEEDS.length);
 	});
 });

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { RENAMED, recipeIds } from "../shared/recipes";
+import { SEEDS } from "../shared/seeds";
 
 type Tally = { up: number; down: number };
 
@@ -40,11 +41,32 @@ function ensureSchema(db: D1Database) {
 				]),
 			),
 		)
+		.then(() => runSeeds(db))
 		.catch((err) => {
 			schemaReady = undefined;
 			throw err;
 		});
 	return schemaReady;
+}
+
+// Each seed runs exactly once per database (recorded in `seeds`), so anything changed
+// afterwards in the UI (e.g. removing an approval) stays changed.
+async function runSeeds(db: D1Database) {
+	await db.prepare("CREATE TABLE IF NOT EXISTS seeds (name TEXT PRIMARY KEY, ran_at INTEGER NOT NULL)").run();
+	for (const seed of SEEDS) {
+		// Claiming the seed name is atomic, so only one isolate ever applies it.
+		const claimed = await db
+			.prepare("INSERT INTO seeds (name, ran_at) VALUES (?, ?) ON CONFLICT (name) DO NOTHING RETURNING name")
+			.bind(seed.name, Date.now())
+			.first();
+		if (!claimed) continue;
+		const at = Date.now();
+		await db.batch(
+			seed.approve
+				.filter((id) => recipeIds.has(id))
+				.map((id) => db.prepare("INSERT OR IGNORE INTO approvals (recipe_id, approved_at, note) VALUES (?, ?, NULL)").bind(id, at)),
+		);
+	}
 }
 
 const VOTER_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

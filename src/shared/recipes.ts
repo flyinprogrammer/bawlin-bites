@@ -87,6 +87,14 @@ function oatBase(opts: { oats?: string; butter: string; sweetener: string; extra
 	];
 }
 
+const KEIC_PROMO: Recipe["promo"] = {
+	title: "BONUS PACK UNLOCKED",
+	blurb:
+		"Liked this one? Kids Eat in Color's Real Easy Mealtime Bundle packs Real Easy Weekdays, Everyday Snacks and Everyday Lunches: a whole meal system of dietitian-made recipes and snack ideas for busy families.",
+	cta: "GET THE BUNDLE ▶",
+	url: "https://kidseatincolor.com/product/mealtime-bundle/",
+};
+
 const YTF_PROMO: Recipe["promo"] = {
 	title: "BONUS PACK UNLOCKED",
 	blurb:
@@ -252,13 +260,8 @@ const defs: Omit<Recipe, "id">[] = [
 		],
 		tip: "Serving toddlers? These are chewy, so break them into small pieces and serve while they're sitting down.",
 		source: { name: "Kids Eat in Color", url: "https://kidseatincolor.com/no-bake-chocolate-orange-date-balls/" },
-		promo: {
-			title: "BONUS PACK UNLOCKED",
-			blurb:
-				"Liked this one? Kids Eat in Color's Real Easy Mealtime Bundle packs Real Easy Weekdays, Everyday Snacks and Everyday Lunches: a whole meal system of dietitian-made recipes and snack ideas for busy families.",
-			cta: "GET THE BUNDLE ▶",
-			url: "https://kidseatincolor.com/product/mealtime-bundle/",
-		},
+		promo: KEIC_PROMO,
+
 	},
 	{
 		name: "Fruit Stand Bites",
@@ -539,6 +542,77 @@ const defs: Omit<Recipe, "id">[] = [
 			"We usually roll half in coconut for texture.",
 		],
 		source: { name: "Yummy Toddler Food", url: "https://www.yummytoddlerfood.com/favorite-bliss-balls/" },
+		promo: YTF_PROMO,
+	},
+	{
+		name: "Cranberry Easy Mode",
+		tagline: "Four ingredients. Nut-free. Difficulty: easy.",
+		prepMins: 10,
+		totalMins: 10,
+		makes: "~20 balls",
+		difficulty: 1,
+		stats: { energy: 3, sweet: 4, crunch: 1 },
+		tags: ["dates", "oats", "fruit", "nut-free", "kid-made"],
+		art: { body: "#8a4b3a", shade: "#3d1c14", bits: "chips", bitColor: "#d6304a" },
+		// Ingredients (and their gram weights) straight from the Kids Eat in Color recipe card.
+		ingredients: [
+			{ qty: "½ cup", item: "rolled oats", cardGrams: 45 },
+			{ qty: "1½ cups", item: "Medjool dates", note: "pitted; about 10 per cup", cardGrams: 220 },
+			{ qty: "⅓ cup", item: "sunflower butter", cardGrams: 80 },
+			{ qty: "¼ cup", item: "dried cranberries", cardGrams: 30 },
+		],
+		steps: [
+			"Pulse the oats in a food processor until finely ground.",
+			"Add the dates, sunflower butter, and cranberries. Pulse until the mix comes together like a dough.",
+			"Roll into 1-inch balls.",
+		],
+		tip: "Making them for a nut-free school? Check that your oats and sunflower butter are made in a nut-free facility.",
+		houseNotes: ["These are fine.", "The perk: they're super easy and nut-free."],
+		source: { name: "Kids Eat in Color", url: "https://kidseatincolor.com/" },
+		promo: KEIC_PROMO,
+	},
+	{
+		name: "Pumpkin Power-Up",
+		tagline: "Pumpkin pie cookie dough, in ball form. A Scherger favorite.",
+		prepMins: 10,
+		totalMins: 20,
+		makes: "22 balls",
+		difficulty: 1,
+		stats: { energy: 5, sweet: 3, crunch: 1 },
+		tags: ["oats", "peanut", "kid-made"],
+		art: { body: "#e08a2e", shade: "#8a4a12", bits: "crumbs", bitColor: "#5a2e0c" },
+		// Written the way the family makes it; the original's choices are in the notes.
+		ingredients: [
+			{ qty: "¼ cup", item: "pumpkin puree" },
+			{ qty: "¼ cup", item: "peanut butter", note: "creamy; the original uses almond butter", weigh: "peanutButter" },
+			{ qty: "¼ cup", item: "maple syrup", note: "the original uses honey", weigh: "mapleSyrup" },
+			{ qty: "1 cup", item: "oat flour" },
+			{ qty: "1 tsp", item: "vanilla extract" },
+			{ qty: "1 tsp", item: "chia seeds", note: "optional" },
+			{ qty: "½ tsp", item: "pumpkin pie spice" },
+			{ qty: "¼ cup", item: "mini chocolate chips", note: "optional; we skip them", weigh: "miniChocolateChips" },
+			{
+				qty: "2",
+				item: "scoop vanilla protein powder",
+				plural: "scoops vanilla protein powder",
+				note: "optional; we skip it",
+			},
+		],
+		steps: [
+			"If the peanut butter and maple syrup are cold, warm them in the microwave for 15 to 30 seconds so they stir in easily.",
+			"Add them to a medium bowl with everything else except the chocolate chips (protein powder goes in now, if you're using it).",
+			"Stir well with a wooden spoon. If the dough is stiff, finish mixing with clean hands. Fold in the chocolate chips, if using.",
+			"Scoop tablespoon-size portions, squeeze each one, then roll it into a ball so it holds together.",
+			"Serve, or keep them in the fridge in an airtight container for up to a month.",
+		],
+		tip: "Nut-free? Swap in sunflower seed butter.",
+		houseNotes: [
+			"These are a family favorite.",
+			"We use peanut butter instead of almond butter.",
+			"We use maple syrup, not honey.",
+			"We skip the chocolate chips and protein powder (probably fine with them, though).",
+		],
+		source: { name: "Yummy Toddler Food", url: "https://www.yummytoddlerfood.com/pumpkin-protein-balls/" },
 		promo: YTF_PROMO,
 	},
 ];

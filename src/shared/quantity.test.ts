@@ -164,6 +164,7 @@ describe("every recipe", () => {
 				}
 				for (const step of r.steps) expect(step, step).not.toMatch(AMOUNT);
 				expect(r.tip ?? "").not.toMatch(AMOUNT);
+				for (const n of r.houseNotes ?? []) expect(n, n).not.toMatch(AMOUNT);
 			});
 
 			it("has a scalable yield", () => {

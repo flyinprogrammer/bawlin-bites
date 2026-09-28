@@ -41,6 +41,8 @@ export interface Recipe {
 	ingredients: Ingredient[];
 	steps: string[];
 	tip?: string;
+	/** How the Scherger family actually makes it. Shown on the recipe and printout. */
+	houseNotes?: string[];
 	source?: { name: string; url: string };
 	/** A "bonus pack" plug shown on the recipe screen. */
 	promo?: { title: string; blurb: string; cta: string; url: string };
@@ -84,6 +86,14 @@ function oatBase(opts: { oats?: string; butter: string; sweetener: string; extra
 		...opts.extras,
 	];
 }
+
+const YTF_PROMO: Recipe["promo"] = {
+	title: "BONUS PACK UNLOCKED",
+	blurb:
+		"Amy Palanjian's bestselling cookbook, Yummy Toddler Food: Dinnertime SOS, has 100 sanity-saving meals that the whole family will actually eat, all fast or make-ahead.",
+	cta: "GET THE COOKBOOK ▶",
+	url: "https://www.yummytoddlerfood.com/dinnertime-sos/",
+};
 
 const defs: Omit<Recipe, "id">[] = [
 	{
@@ -277,13 +287,7 @@ const defs: Omit<Recipe, "id">[] = [
 		],
 		tip: "For little kids, grind the nuts extra fine and keep the bites small.",
 		source: { name: "Yummy Toddler Food", url: "https://www.yummytoddlerfood.com/no-bake-energy-balls-with-fruit/" },
-		promo: {
-			title: "BONUS PACK UNLOCKED",
-			blurb:
-				"Amy Palanjian's bestselling cookbook, Yummy Toddler Food: Dinnertime SOS, has 100 sanity-saving meals that the whole family will actually eat, all fast or make-ahead.",
-			cta: "GET THE COOKBOOK ▶",
-			url: "https://www.yummytoddlerfood.com/dinnertime-sos/",
-		},
+		promo: YTF_PROMO,
 	},
 	{
 		name: "Coconut Snowball",
@@ -491,6 +495,41 @@ const defs: Omit<Recipe, "id">[] = [
 			"Store in the fridge in an airtight container for up to 2 weeks.",
 		],
 		tip: "Packing these for school? Check that your oats and sunflower seed butter are made in a nut-free facility.",
+	},
+	{
+		name: "Mango Bliss Bonus",
+		tagline: "Cashews, dates and freeze-dried mango. Bonus round unlocked.",
+		prepMins: 15,
+		totalMins: 45,
+		makes: "18 balls",
+		difficulty: 2,
+		stats: { energy: 4, sweet: 4, crunch: 1 },
+		tags: ["dates", "cashew", "fruit", "oats", "coconut", "kid-made"],
+		art: { body: "#f5b93d", shade: "#b56a12", bits: "flakes", bitColor: "#fffaf0" },
+		ingredients: [
+			{ qty: "1½ cups", item: "cashews", note: "raw or roasted, unsalted" },
+			{ qty: "1 cup", item: "pitted Medjool dates" },
+			{ qty: "1 tsp", item: "vanilla" },
+			{ qty: "¼ cup", item: "rolled oats" },
+			{ qty: "2 tbsp", item: "unsweetened shredded coconut" },
+			{ qty: "1 cup", item: "freeze-dried mango", note: "or freeze-dried strawberries, blueberries, or raspberries" },
+			{ qty: "optional", item: "extra shredded coconut", note: "for rolling" },
+		],
+		steps: [
+			"Cover the cashews with water and let them soak for 30 minutes. Drain and pat dry.",
+			"Put the cashews in a food processor with everything except the extra coconut. Pulse, scraping down the sides often, until it's a fairly smooth, sticky dough.",
+			"Scoop tablespoon-size portions and roll them into balls.",
+			"Roll about half of them in the extra coconut.",
+			"Serve chilled or at room temperature. They keep in the fridge for up to a month.",
+		],
+		tip: "Dough getting sticky? Rinse your hands, or chill the bowl for a few minutes.",
+		houseNotes: [
+			"We use freeze-dried mango.",
+			"Soaking the cashews isn't that bad. Do it.",
+			"We usually roll half in coconut for texture.",
+		],
+		source: { name: "Yummy Toddler Food", url: "https://www.yummytoddlerfood.com/favorite-bliss-balls/" },
+		promo: YTF_PROMO,
 	},
 ];
 

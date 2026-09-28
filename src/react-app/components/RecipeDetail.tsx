@@ -194,6 +194,16 @@ export function RecipeDetail({
 								<b>PRO TIP:</b> {recipe.tip}
 							</p>
 						)}
+						{recipe.houseNotes && (
+							<aside className="house-notes">
+								<b>SCHERGER NOTES</b>
+								<ul>
+									{recipe.houseNotes.map((n) => (
+										<li key={n}>{n}</li>
+									))}
+								</ul>
+							</aside>
+						)}
 						{needsFoodProcessor(recipe) && (
 							<aside className="gear">
 								<span className="gear-icon" aria-hidden="true">⚙</span>
@@ -286,6 +296,11 @@ export function PrintSheet({
 					{recipe.tip && (
 						<p>
 							<b>Tip:</b> {recipe.tip}
+						</p>
+					)}
+					{recipe.houseNotes && (
+						<p>
+							<b>Scherger notes:</b> {recipe.houseNotes.join(" ")}
 						</p>
 					)}
 				</section>

@@ -2028,3 +2028,20 @@ body.quake .recipes {
 		color: #333 !important;
 	}
 }
+
+.house-notes {
+	margin: 16px 0 0;
+	padding: 12px 14px;
+	background: #e3f5ea;
+	border: 3px solid #2fa36b;
+	border-radius: 10px;
+	color: #154d31;
+}
+.house-notes b {
+	font-family: var(--pixel);
+	font-size: 9px;
+}
+.house-notes ul {
+	margin: 8px 0 0;
+	padding-left: 18px;
+}

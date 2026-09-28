@@ -154,10 +154,15 @@ export function RecipeDetail({
 									<li key={i}>
 										<label className={checked.has(i) ? "got" : ""}>
 											<input type="checkbox" checked={checked.has(i)} onChange={() => toggle(i)} />
-											<span className="qty">{line.qty}</span> <span>{line.item}</span>
-											{ing.note && <em> ({ing.note})</em>}
+											<span className="ing-text">
+												<span className="qty">{line.qty}</span> <span>{line.item}</span>
+												{ing.note && <em> ({ing.note})</em>}
+											</span>
 											{grams && (
-												<span className={`grams${line.grams === null ? " none" : ""}`}>
+												<span
+													className={`grams${line.grams === null ? " none" : ""}`}
+													title={line.gramsFromCard ? "Weight from the recipe card" : undefined}
+												>
 													{line.grams === null ? line.noWeight : `≈${line.grams} g`}
 												</span>
 											)}
@@ -168,8 +173,8 @@ export function RecipeDetail({
 						</ul>
 						{grams && (
 							<p className="grams-note">
-								Grams only appear where King Arthur Baking and USDA data agree within 5% for that exact ingredient, and
-								for amounts of 1 tbsp or more. Everything else (oats, dates, whole nuts, dried fruit…) packs too
+								Grams come from the recipe card when it lists them; otherwise they only appear where King Arthur
+								Baking and USDA data agree within 5% for that exact ingredient. Either way, only for 1 tbsp or more. Everything else (oats, dates, whole nuts, dried fruit…) packs too
 								differently to weigh reliably, so measure it with cups.
 							</p>
 						)}

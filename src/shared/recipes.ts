@@ -13,6 +13,11 @@ export interface Ingredient {
 	plural?: string;
 	/** Key into WEIGHTS (grams per cup); only set where the density is verified. */
 	weigh?: WeightKey;
+	/**
+	 * Grams for a single batch as printed on the source recipe card. The author's own
+	 * number beats a generic density chart, so it wins over `weigh` (never set both).
+	 */
+	cardGrams?: number;
 	/** Must never contain an amount: notes don't get batch-scaled. */
 	note?: string;
 }
@@ -354,29 +359,33 @@ const defs: Omit<Recipe, "id">[] = [
 	},
 	{
 		name: "Carrot Cake Cart",
-		tagline: "Technically a vegetable. Technically.",
+		tagline: "Technically a vegetable. Technically. Now on a stick.",
 		kaijuFave: "WHOA WHOA. not the carrot cake. i'm a bunny, not a monster. 🥕",
-		prepMins: 20,
-		totalMins: 20,
-		makes: "~18 balls",
+		prepMins: 15,
+		totalMins: 15,
+		makes: "~12 pops",
 		difficulty: 2,
-		stats: { energy: 3, sweet: 4, crunch: 2 },
-		tags: ["dates", "walnut", "coconut", "oats"],
+		stats: { energy: 3, sweet: 3, crunch: 2 },
+		tags: ["dates", "pecan", "coconut", "no oats", "kid-made"],
 		art: { body: "#d98a3d", shade: "#7c4318", bits: "flakes", bitColor: "#fff4e0" },
+		// Ingredients (and their gram weights) straight from the family's recipe card.
 		ingredients: [
-			{ qty: "1 cup", item: "Medjool dates", note: "pitted" },
-			{ qty: "¾ cup", item: "walnuts" },
-			{ qty: "½ cup", item: "rolled oats" },
-			{ qty: "½ cup", item: "finely grated carrot", note: "small holes of a box grater" },
-			{ qty: "¼ cup", item: "shredded coconut", note: "plus more for rolling" },
+			{ qty: "½ cup", item: "dates", note: "pitted", cardGrams: 90 },
+			{ qty: "½ cup", item: "shredded carrots", cardGrams: 60 },
+			{ qty: "½ cup", item: "pecans", cardGrams: 50 },
+			{ qty: "⅓ cup", item: "desiccated or shredded coconut", cardGrams: 30 },
+			{ qty: "1 tsp", item: "vanilla" },
 			{ qty: "1 tsp", item: "cinnamon" },
-			{ qty: "¼ tsp", item: "nutmeg or ginger" },
+			{ qty: "1 tsp", item: "nutmeg" },
+			{ qty: "1 tsp", item: "sea salt" },
+			{ qty: "as needed", item: "lollipop sticks" },
+			{ qty: "optional", item: "Greek yogurt, to dip" },
 		],
 		steps: [
-			"Pulse oats and walnuts until crumbly.",
-			"Add dates and spices; process until it clumps.",
-			"Add grated carrot and coconut, pulse just until mixed.",
-			"Roll into balls and coat in coconut. Keeps about a week in the fridge (the carrot is real).",
+			"Pulse the pecans in a food processor until finely chopped.",
+			"Add the dates, carrots, coconut, vanilla, cinnamon, nutmeg, and salt. Process until the mix sticks together when pinched.",
+			"Roll into 1-inch balls and push a lollipop stick into each one.",
+			"Dunk in Greek yogurt if you like, then chill until firm. Keep them in the fridge (the carrot is real).",
 		],
 	},
 	{

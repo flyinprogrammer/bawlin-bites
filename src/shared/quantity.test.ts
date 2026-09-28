@@ -39,6 +39,7 @@ describe("parseQty", () => {
 		expect(parseQty("1")).toMatchObject({ kind: "count" });
 		expect(parseQty("pinch")).toMatchObject({ kind: "pinch" });
 		expect(parseQty("optional")).toEqual({ kind: "text", text: "optional" });
+		expect(parseQty("as needed")).toEqual({ kind: "text", text: "as needed" });
 	});
 
 	it.each(["a cup", "1 cupz", "1/2 cup", "0.5 cup", "", "1 oz", "2 + 1", "1 tbsp +"])("rejects %j", (bad) => {
@@ -218,6 +219,24 @@ describe("grams", () => {
 			for (const ing of r.ingredients) if (neverWeighed.test(ing.item)) expect(ing.weigh, `${r.name}: ${ing.item}`).toBeUndefined();
 	});
 
+	it("only uses recipe-card grams on 1 tbsp+ volumes, never alongside a chart weight, at a plausible density", () => {
+		for (const r of recipes)
+			for (const ing of r.ingredients) {
+				if (ing.cardGrams === undefined) continue;
+				const where = `${r.name}: ${ing.item}`;
+				expect(ing.weigh, where).toBeUndefined();
+				expect(Number.isInteger(ing.cardGrams) && ing.cardGrams > 0, where).toBe(true);
+				const q = parseQty(ing.qty);
+				expect(q.kind, where).toBe("volume");
+				const cups = (q as { tsp: Fraction }).tsp.div(TSP_PER.cup).valueOf();
+				expect(cups * 48, where).toBeGreaterThanOrEqual(3);
+				// Anything outside 40–400 g per cup (fluffy coconut … honey) is a typo.
+				const perCup = ing.cardGrams / cups;
+				expect(perCup, where).toBeGreaterThan(40);
+				expect(perCup, where).toBeLessThan(400);
+			}
+	});
+
 	it("weighs the ingredients we verified", () => {
 		const weighed = recipes.flatMap((r) => r.ingredients.filter((i) => i.weigh).map((i) => `${i.item}→${i.weigh}`));
 		expect(new Set(weighed)).toEqual(
@@ -238,5 +257,29 @@ describe("grams", () => {
 				"sunflower seed butter→sunflowerButter",
 			]),
 		);
+	});
+});
+
+describe("Carrot Cake Cart (from the family recipe card)", () => {
+	const carrot = recipes.find((r) => r.id === "carrot-cake-cart")!;
+	it("matches the card", () => {
+		expect(carrot.ingredients.map((i) => `${i.qty} ${i.item}${i.cardGrams ? ` (${i.cardGrams} g)` : ""}`)).toEqual([
+			"½ cup dates (90 g)",
+			"½ cup shredded carrots (60 g)",
+			"½ cup pecans (50 g)",
+			"⅓ cup desiccated or shredded coconut (30 g)",
+			"1 tsp vanilla",
+			"1 tsp cinnamon",
+			"1 tsp nutmeg",
+			"1 tsp sea salt",
+			"as needed lollipop sticks",
+			"optional Greek yogurt, to dip",
+		]);
+	});
+	it.each([
+		[2, ["1 cup", "1 cup", "1 cup", "⅔ cup", "2 tsp", "2 tsp", "2 tsp", "2 tsp", "as needed", "optional"]],
+		[3, ["1½ cups", "1½ cups", "1½ cups", "1 cup", "1 tbsp", "1 tbsp", "1 tbsp", "1 tbsp", "as needed", "optional"]],
+	])("%i× batch", (times, expected) => {
+		expect(carrot.ingredients.map((i) => scaleQty(i.qty, times))).toEqual(expected);
 	});
 });

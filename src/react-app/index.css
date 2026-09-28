@@ -1836,9 +1836,16 @@ body.quake .recipes {
 	height: 18px;
 	accent-color: var(--accent);
 }
+.ingredients label {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.ing-text {
+	flex: 1;
+}
 .grams {
-	float: right;
-	margin-left: 10px;
+	flex: none;
 	font-family: var(--sans);
 	font-weight: 700;
 	font-size: 13px;

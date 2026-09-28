@@ -50,7 +50,7 @@ export type Qty =
 	| { kind: "volume"; tsp: Fraction }
 	| { kind: "count"; n: Fraction }
 	| { kind: "pinch"; n: Fraction }
-	| { kind: "text"; text: string }; // e.g. "optional": never scaled
+	| { kind: "text"; text: string }; // "optional" / "as needed": never scaled
 
 const NUMBER = "(\\d+)?([½⅓⅔¼¾⅛⅜⅝⅞])?";
 const PART = new RegExp(`^${NUMBER}(?:\\s+(cups?|tbsp|tsp))?$`);
@@ -70,7 +70,7 @@ function parseNumber(whole: string | undefined, vulgar: string | undefined): Fra
  */
 export function parseQty(input: string): Qty {
 	const s = input.trim();
-	if (s === "optional") return { kind: "text", text: s };
+	if (s === "optional" || s === "as needed") return { kind: "text", text: s };
 	const pinch = s.match(/^(\d+)?\s*pinch(?:es)?$/);
 	if (pinch) return { kind: "pinch", n: new Fraction(pinch[1] ? Number(pinch[1]) : 1) };
 

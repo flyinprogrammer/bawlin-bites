@@ -70,7 +70,11 @@ Recipes the family has actually made get a green **SCHERGER TESTED** seal (store
 1. Pick a long random admin token and add it as a secret named **`ADMIN_TOKEN`** under GitHub →
    Settings → Environments → **production**. The next deploy uploads it to the Worker.
 2. On the site, click **🔑 Scherger HQ** in the footer, paste the token, open a recipe, and hit
-   **✓ MARK TESTED & APPROVED** (optionally with a note).
+   **✓ MARK TESTED & APPROVED**.
+
+While logged in, every recipe also has an editable **Scherger notes** box (one bullet per line,
+up to 12 lines). Saved notes live in D1 (`house_notes`) and replace the recipe's built-in
+`houseNotes`; saving an empty box shows no notes.
 
 Locally, `cp .dev.vars.example .dev.vars` gives you `ADMIN_TOKEN=local-dev-token`.
 
@@ -81,7 +85,9 @@ Locally, `cp .dev.vars.example .dev.vars` gives you `ADMIN_TOKEN=local-dev-token
 | `GET /api/votes?voter=<uuid>` | `{ tallies: { [id]: { up, down } }, mine: { [id]: 1 \| -1 } }` |
 | `PUT /api/votes/:recipeId` `{ voter, vote: 1 \| -1 \| 0 }` | cast / change / clear a vote |
 | `GET /api/approvals` | `{ approvals: { [id]: { at, note } } }` |
-| `PUT /api/approvals/:recipeId` `{ approved, note? }` + `Authorization: Bearer <ADMIN_TOKEN>` | mark / unmark tested & approved |
+| `PUT /api/approvals/:recipeId` `{ approved }` + `Authorization: Bearer <ADMIN_TOKEN>` | mark / unmark tested & approved |
+| `GET /api/notes` | `{ notes: { [id]: string[] } }` (edited Scherger notes) |
+| `PUT /api/notes/:recipeId` `{ notes: "line\nline" }` + bearer token | save a recipe's Scherger notes |
 
 The browser generates a random voter UUID and keeps it in `localStorage`. The Worker creates the
 `votes` table itself (`CREATE TABLE IF NOT EXISTS`), so there are no migrations to run.

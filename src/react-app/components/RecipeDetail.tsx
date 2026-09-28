@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { FOOD_PROCESSOR, needsFoodProcessor, type Recipe } from "../../shared/recipes";
+import { NOTE_MAX_CHARS, NOTES_MAX_LINES } from "../../shared/notes";
 import { BATCHES, scaledIngredient, scaledMakes } from "../scaled";
 import type { Approval } from "../useApprovals";
 import type { Tally, Vote } from "../useVotes";
@@ -23,6 +24,8 @@ export function RecipeDetail({
 	approval,
 	isAdmin,
 	onSetApproval,
+	notes,
+	onSaveNotes,
 }: {
 	recipe: Recipe;
 	tally?: Tally;
@@ -40,7 +43,10 @@ export function RecipeDetail({
 	onGrams: (on: boolean) => void;
 	approval?: Approval;
 	isAdmin: boolean;
-	onSetApproval: (approved: boolean, note: string) => Promise<boolean>;
+	onSetApproval: (approved: boolean) => Promise<boolean>;
+	/** The Scherger notes to show (edited ones from D1, or the recipe's built-in ones). */
+	notes: string[];
+	onSaveNotes: (text: string) => Promise<boolean>;
 }) {
 	const ref = useRef<HTMLDialogElement>(null);
 
@@ -116,7 +122,9 @@ export function RecipeDetail({
 					</button>
 				</div>
 
-				{isAdmin && <AdminApproval key={recipe.id} approval={approval} onSave={onSetApproval} />}
+				{isAdmin && (
+					<AdminPanel key={recipe.id} approval={approval} notes={notes} onSetApproval={onSetApproval} onSaveNotes={onSaveNotes} />
+				)}
 
 				<div className="detail-body">
 					<section>
@@ -194,12 +202,12 @@ export function RecipeDetail({
 								<b>PRO TIP:</b> {recipe.tip}
 							</p>
 						)}
-						{recipe.houseNotes && (
+						{notes.length > 0 && (
 							<aside className="house-notes">
 								<b>SCHERGER NOTES</b>
 								<ul>
-									{recipe.houseNotes.map((n) => (
-										<li key={n}>{n}</li>
+									{notes.map((n, i) => (
+										<li key={i}>{n}</li>
 									))}
 								</ul>
 							</aside>
@@ -248,12 +256,14 @@ export function PrintSheet({
 	batch,
 	grams,
 	approval,
+	notes,
 }: {
 	recipe: Recipe;
 	checked: ReadonlySet<number>;
 	batch: number;
 	grams: boolean;
 	approval?: Approval;
+	notes: string[];
 }) {
 	const batchName = BATCHES.find((b) => b.times === batch)?.name;
 	return (
@@ -267,7 +277,7 @@ export function PrintSheet({
 						{batch > 1 && <>{batchName} ({batch}×) · </>}Prep {recipe.prepMins} min · Total {recipe.totalMins} min · Makes{" "}
 						{scaledMakes(recipe, batch)}
 					</p>
-					{approval && <p className="print-meta">✓ Scherger tested &amp; approved{approval.note ? `: “${approval.note}”` : ""}</p>}
+					{approval && <p className="print-meta">✓ Scherger tested &amp; approved</p>}
 				</div>
 			</header>
 			<div className="print-cols">
@@ -298,10 +308,17 @@ export function PrintSheet({
 							<b>Tip:</b> {recipe.tip}
 						</p>
 					)}
-					{recipe.houseNotes && (
-						<p>
-							<b>Scherger notes:</b> {recipe.houseNotes.join(" ")}
-						</p>
+					{notes.length > 0 && (
+						<>
+							<p>
+								<b>Scherger notes:</b>
+							</p>
+							<ul className="print-notes">
+								{notes.map((n, i) => (
+									<li key={i}>{n}</li>
+								))}
+							</ul>
+						</>
 					)}
 				</section>
 			</div>
@@ -325,7 +342,6 @@ function ApprovalSeal({ approval }: { approval: Approval }) {
 				<b>SCHERGER TESTED &amp; APPROVED</b>
 				<span>
 					{date}
-					{approval.note && <> · “{approval.note}”</>}
 				</span>
 			</div>
 		</div>
@@ -333,33 +349,58 @@ function ApprovalSeal({ approval }: { approval: Approval }) {
 }
 
 /** Only rendered for someone logged in with the admin token. */
-function AdminApproval({ approval, onSave }: { approval?: Approval; onSave: (approved: boolean, note: string) => Promise<boolean> }) {
-	const [note, setNote] = useState(approval?.note ?? "");
-	const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
-	const save = async (approved: boolean) => {
+function AdminPanel({
+	approval,
+	notes,
+	onSetApproval,
+	onSaveNotes,
+}: {
+	approval?: Approval;
+	notes: string[];
+	onSetApproval: (approved: boolean) => Promise<boolean>;
+	onSaveNotes: (text: string) => Promise<boolean>;
+}) {
+	const [text, setText] = useState(notes.join("\n"));
+	const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+	const dirty = text.trim() !== notes.join("\n").trim();
+	const run = async (action: () => Promise<boolean>, doneState: "idle" | "saved" = "idle") => {
 		setStatus("saving");
-		setStatus((await onSave(approved, note)) ? "idle" : "error");
+		setStatus((await action()) ? doneState : "error");
 	};
 	return (
 		<div className="admin-approval">
-			<span className="admin-tag">🔑 SCHERGER HQ</span>
-			<input
-				type="text"
-				maxLength={200}
-				placeholder="Optional note, e.g. “made a double batch, perfect”"
-				value={note}
-				onChange={(e) => setNote(e.target.value)}
-				aria-label="Approval note"
-			/>
-			<button type="button" className="approve-btn" disabled={status === "saving"} onClick={() => save(true)}>
-				{approval ? "✓ UPDATE NOTE" : "✓ MARK TESTED & APPROVED"}
-			</button>
-			{approval && (
-				<button type="button" className="unapprove-btn" disabled={status === "saving"} onClick={() => save(false)}>
-					REMOVE APPROVAL
+			<label className="admin-notes">
+				<span className="admin-tag">🔑 SCHERGER NOTES · one per line</span>
+				<textarea
+					rows={Math.min(8, Math.max(3, text.split("\n").length + 1))}
+					maxLength={NOTES_MAX_LINES * (NOTE_MAX_CHARS + 1)}
+					placeholder={"We roll half in coconut.\nThese are a family favorite."}
+					value={text}
+					onChange={(e) => {
+						setText(e.target.value);
+						setStatus("idle");
+					}}
+				/>
+			</label>
+			<div className="admin-buttons">
+				<button type="button" className="approve-btn" disabled={status === "saving" || !dirty} onClick={() => run(() => onSaveNotes(text), "saved")}>
+					{status === "saved" && !dirty ? "✓ NOTES SAVED" : "SAVE NOTES"}
 				</button>
+				{approval ? (
+					<button type="button" className="unapprove-btn" disabled={status === "saving"} onClick={() => run(() => onSetApproval(false))}>
+						REMOVE APPROVAL
+					</button>
+				) : (
+					<button type="button" className="approve-btn" disabled={status === "saving"} onClick={() => run(() => onSetApproval(true))}>
+						✓ MARK TESTED &amp; APPROVED
+					</button>
+				)}
+			</div>
+			{status === "error" && (
+				<span className="admin-error">
+					Couldn't save. Max {NOTES_MAX_LINES} lines of {NOTE_MAX_CHARS} characters, and your token must still be valid.
+				</span>
 			)}
-			{status === "error" && <span className="admin-error">Couldn't save. Is your token still valid?</span>}
 		</div>
 	);
 }

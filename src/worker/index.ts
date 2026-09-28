@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { RENAMED, recipeIds } from "../shared/recipes";
+import { parseNotes } from "../shared/notes";
 import { SEEDS } from "../shared/seeds";
 
 type Tally = { up: number; down: number };
@@ -29,6 +30,14 @@ function ensureSchema(db: D1Database) {
 					note TEXT
 				)`,
 			),
+			// Editable "Scherger notes" (JSON array of lines); overrides the notes in recipes.ts.
+			db.prepare(
+				`CREATE TABLE IF NOT EXISTS house_notes (
+					recipe_id TEXT PRIMARY KEY,
+					notes TEXT NOT NULL,
+					updated_at INTEGER NOT NULL
+				)`,
+			),
 		])
 		.then(() =>
 			// Carry votes over from renamed recipes. Idempotent: once moved, nothing matches.
@@ -38,6 +47,8 @@ function ensureSchema(db: D1Database) {
 					db.prepare("DELETE FROM votes WHERE recipe_id = ?").bind(from),
 					db.prepare("UPDATE OR IGNORE approvals SET recipe_id = ? WHERE recipe_id = ?").bind(to, from),
 					db.prepare("DELETE FROM approvals WHERE recipe_id = ?").bind(from),
+					db.prepare("UPDATE OR IGNORE house_notes SET recipe_id = ? WHERE recipe_id = ?").bind(to, from),
+					db.prepare("DELETE FROM house_notes WHERE recipe_id = ?").bind(from),
 				]),
 			),
 		)
@@ -184,6 +195,36 @@ app.put("/api/approvals/:recipeId", async (c) => {
 		.bind(recipeId)
 		.first<{ approved_at: number; note: string | null }>();
 	return c.json({ approval: row ? { at: row.approved_at, note: row.note } : null });
+});
+
+// ─── Scherger notes (editable) ──────────────────────────────────────────────
+
+app.get("/api/notes", async (c) => {
+	await ensureSchema(c.env.DB);
+	const { results } = await c.env.DB.prepare("SELECT recipe_id, notes FROM house_notes").all<{ recipe_id: string; notes: string }>();
+	const notes: Record<string, string[]> = {};
+	for (const row of results) if (recipeIds.has(row.recipe_id)) notes[row.recipe_id] = JSON.parse(row.notes);
+	return c.json({ notes });
+});
+
+app.put("/api/notes/:recipeId", async (c) => {
+	if (!c.env.ADMIN_TOKEN) return c.json({ error: "admin not configured" }, 503);
+	if (!(await isAdmin(c))) return c.json({ error: "bad token" }, 401);
+	const recipeId = c.req.param("recipeId");
+	if (!recipeIds.has(recipeId)) return c.json({ error: "unknown recipe" }, 404);
+	const body = await c.req.json<{ notes?: unknown }>().catch(() => ({}) as Record<string, unknown>);
+	if (typeof body.notes !== "string") return c.json({ error: "notes must be a string" }, 400);
+	const lines = parseNotes(body.notes);
+	if (!lines) return c.json({ error: "too many or too-long notes" }, 400);
+
+	await ensureSchema(c.env.DB);
+	await c.env.DB.prepare(
+		`INSERT INTO house_notes (recipe_id, notes, updated_at) VALUES (?, ?, ?)
+		 ON CONFLICT (recipe_id) DO UPDATE SET notes = excluded.notes, updated_at = excluded.updated_at`,
+	)
+		.bind(recipeId, JSON.stringify(lines), Date.now())
+		.run();
+	return c.json({ notes: lines });
 });
 
 app.all("/api/*", (c) => c.json({ error: "not found" }, 404));

@@ -33,7 +33,10 @@ function idFromPath(path: string) {
 
 export default function App() {
 	const { tallies, mine, cast, online } = useVotes();
-	const { approvals, isAdmin, login, logout, setApproval } = useApprovals();
+	const { approvals, notes, isAdmin, login, logout, setApproval, saveNotes } = useApprovals();
+	// Edited notes win; otherwise the recipe's built-in notes plus any note left on its approval.
+	const notesFor = (r: (typeof recipes)[number]) =>
+		notes[r.id] ?? [...(r.houseNotes ?? []), ...(approvals[r.id]?.note ? [approvals[r.id].note!] : [])];
 	const [loginOpen, setLoginOpen] = useState(false);
 	// Batch size per recipe (1×/2×/3×) and the grams toggle, shared by the dialog and the printout.
 	const [batches, setBatches] = useState<Record<string, number>>({});
@@ -369,7 +372,9 @@ export default function App() {
 						onGrams={setGrams}
 						approval={approvals[openRecipe.id]}
 						isAdmin={isAdmin}
-						onSetApproval={(approved, note) => setApproval(openRecipe.id, approved, note)}
+						onSetApproval={(approved) => setApproval(openRecipe.id, approved)}
+						notes={notesFor(openRecipe)}
+						onSaveNotes={(text) => saveNotes(openRecipe.id, text)}
 					/>
 					<PrintSheet
 						recipe={openRecipe}
@@ -377,6 +382,7 @@ export default function App() {
 						batch={batches[openRecipe.id] ?? 1}
 						grams={grams}
 						approval={approvals[openRecipe.id]}
+						notes={notesFor(openRecipe)}
 					/>
 				</>
 			)}

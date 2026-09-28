@@ -16,6 +16,8 @@ function storedToken() {
 /** "Scherger tested & approved" flags (public) plus admin login for changing them. */
 export function useApprovals() {
 	const [approvals, setApprovals] = useState<Record<string, Approval>>({});
+	/** Notes edited in Scherger HQ; they replace a recipe's built-in houseNotes. */
+	const [notes, setNotes] = useState<Record<string, string[]>>({});
 	const [token, setToken] = useState<string | null>(storedToken);
 
 	useEffect(() => {
@@ -23,6 +25,10 @@ export function useApprovals() {
 		fetch("/api/approvals")
 			.then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
 			.then((data: { approvals: Record<string, Approval> }) => !cancelled && setApprovals(data.approvals))
+			.catch(() => {});
+		fetch("/api/notes")
+			.then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+			.then((data: { notes: Record<string, string[]> }) => !cancelled && setNotes(data.notes))
 			.catch(() => {});
 		return () => {
 			cancelled = true;
@@ -56,13 +62,13 @@ export function useApprovals() {
 	}, []);
 
 	const setApproval = useCallback(
-		async (recipeId: string, approved: boolean, note: string) => {
+		async (recipeId: string, approved: boolean) => {
 			if (!token) return false;
 			try {
 				const res = await fetch(`/api/approvals/${recipeId}`, {
 					method: "PUT",
 					headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-					body: JSON.stringify({ approved, note }),
+					body: JSON.stringify({ approved }),
 				});
 				if (res.status === 401) {
 					logout();
@@ -84,5 +90,29 @@ export function useApprovals() {
 		[token, logout],
 	);
 
-	return { approvals, isAdmin: token !== null, login, logout, setApproval };
+	const saveNotes = useCallback(
+		async (recipeId: string, text: string) => {
+			if (!token) return false;
+			try {
+				const res = await fetch(`/api/notes/${recipeId}`, {
+					method: "PUT",
+					headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+					body: JSON.stringify({ notes: text }),
+				});
+				if (res.status === 401) {
+					logout();
+					return false;
+				}
+				if (!res.ok) return false;
+				const data: { notes: string[] } = await res.json();
+				setNotes((all) => ({ ...all, [recipeId]: data.notes }));
+				return true;
+			} catch {
+				return false;
+			}
+		},
+		[token, logout],
+	);
+
+	return { approvals, notes, isAdmin: token !== null, login, logout, setApproval, saveNotes };
 }

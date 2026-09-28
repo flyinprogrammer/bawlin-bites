@@ -2045,3 +2045,31 @@ body.quake .recipes {
 	margin: 8px 0 0;
 	padding-left: 18px;
 }
+
+.admin-notes {
+	flex: 1 1 100%;
+	display: grid;
+	gap: 6px;
+}
+.admin-notes textarea {
+	font: inherit;
+	font-size: 15px;
+	line-height: 1.5;
+	padding: 8px 10px;
+	border: 2px solid #221e2e;
+	border-radius: 8px;
+	background: #fff;
+	color: #221e2e;
+	resize: vertical;
+}
+.admin-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+@media print {
+	.print-sheet .print-notes {
+		margin: 0 0 8pt;
+		padding-left: 16pt;
+	}
+}
